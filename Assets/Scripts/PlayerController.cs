@@ -178,11 +178,12 @@ public class PlayerController : MonoBehaviour
 
     private void Die()
     {
-        currentScore = 0f;
-        Respawn();
+        Chochosan.EventManager.OnPlayerLost?.Invoke();
+        Time.timeScale = 0f;
+      //  Respawn();
     }
 
-    private void Respawn()
+    public void Respawn()
     {
         thisTransform.position = respawnTransform.position;
         thisTransform.rotation = Quaternion.identity;
@@ -221,9 +222,8 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("moveBackwards", false);
     }
 
-
-
-    public void Swipe()
+    #region MobileInput
+    private void Swipe()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -281,4 +281,5 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    #endregion
 }
