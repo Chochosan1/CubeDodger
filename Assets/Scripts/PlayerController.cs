@@ -20,12 +20,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform respawnTransform;
     [SerializeField] private GameObject moveParticle;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
+    [Tooltip("The part of the player prefab that consists of the visual part of the player (not the entire player prefab).")]
+    [SerializeField] private GameObject playerCube;
+    [SerializeField] private GameObject playerExplodedPrefab;
 
     [Header("Collision")]
     [SerializeField] private LayerMask layersToGetAffectedBy;
-
-    [Header("Stats")]
-    [SerializeField] private float maxHealth = 100f;
 
     [Header("Score counter")]
     [Tooltip("The starting score multiplier. It will increase over time while playing until an enemy hits the player.")]
@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("How much should the multiplier increase with?")]
     [SerializeField] private float multiplierIncreasePerTick = 1f;
     private float secondsToIncreaseMultiplierTimestamp;
-    private float currentHealth;
+    private bool isGameLost = false;
     private float currentScore = 0f;
     private float CurrentScore
     {
@@ -54,10 +54,12 @@ public class PlayerController : MonoBehaviour
     private Animator anim;
     private Rigidbody rb;
     private Vector3 targetPosition;
+    private GameObject playerExplodedObject;
 
-    Vector2 firstPressPos;
-    Vector2 secondPressPos;
-    Vector2 currentSwipe;
+    //TOUCH
+    private Vector2 firstPressPos;
+    private Vector2 secondPressPos;
+    private Vector2 currentSwipe;
 
     private bool canRollForward = false;
     private bool canRollBackwards = false;
@@ -75,15 +77,16 @@ public class PlayerController : MonoBehaviour
         thisTransform = transform;
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
-
-        currentHealth = maxHealth;
     }
 
     void Update()
     {
         Swipe();
-        currentScore += Time.deltaTime * ScoreMultiplier;
-        scoreText.text = currentScore.ToString("F0");
+        if(!isGameLost)
+        {
+            currentScore += Time.deltaTime * ScoreMultiplier;
+            scoreText.text = currentScore.ToString("F0");
+        }      
 
         if (Time.time >= secondsToIncreaseMultiplierTimestamp)
         {
@@ -138,23 +141,13 @@ public class PlayerController : MonoBehaviour
         {
             if (other.gameObject.CompareTag("KillZone"))
             {
-                Die();
+                LoseGame();
                 return;
             }
 
             other.gameObject.GetComponent<IInteractable>().AffectPlayer(this);
 
             other.gameObject.SetActive(false);
-        }
-    }
-
-    public void TakeDamage(float damage)
-    {
-        currentHealth -= damage;
-
-        if (currentHealth <= 0)
-        {
-            Die();
         }
     }
 
@@ -176,11 +169,22 @@ public class PlayerController : MonoBehaviour
         ScoreMultiplier = 1f;
     }
 
-    private void Die()
+    private void LoseGame()
     {
+        if (isGameLost)
+            return;
+
+        StartCoroutine(WaitBeforeStoppingGame());      
+    }
+
+    private IEnumerator WaitBeforeStoppingGame()
+    {
+        isGameLost = true;
+        playerCube.SetActive(false);
+        playerExplodedObject = Instantiate(playerExplodedPrefab, thisTransform.position, thisTransform.rotation);
+        yield return new WaitForSeconds(3f);
         Chochosan.EventManager.OnPlayerLost?.Invoke();
         Time.timeScale = 0f;
-      //  Respawn();
     }
 
     public void Respawn()
@@ -189,6 +193,9 @@ public class PlayerController : MonoBehaviour
         thisTransform.rotation = Quaternion.identity;
         rb.velocity = Vector3.zero;
         canRollForward = canRollBackwards = false;
+        isGameLost = false;
+        playerCube.SetActive(true);
+        Destroy(playerExplodedObject);
     }
 
     private IEnumerator RollForward()

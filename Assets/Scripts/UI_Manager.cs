@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Chochosan
 {
+    /// <summary>
+    /// Handles the UI logic.
+    /// </summary>
     public class UI_Manager : MonoBehaviour
     {
         [Header("References")]
@@ -24,6 +27,7 @@ namespace Chochosan
             mainMenu.SetActive(true);
         }
 
+        //called by a button
         public void RespawnPlayer()
         {
             PlayerController.Instance.Respawn();
@@ -31,6 +35,7 @@ namespace Chochosan
             mainMenu.SetActive(false);
         }
 
+        //called by a button
         public void ReloadScene(int sceneToReload)
         {
             Time.timeScale = 1f;
