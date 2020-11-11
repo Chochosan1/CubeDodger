@@ -20,6 +20,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform respawnTransform;
     [SerializeField] private GameObject moveParticle;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
+    [SerializeField] private TMPro.TextMeshProUGUI highscoreText;
+    [SerializeField] private TMPro.TextMeshProUGUI multiplierText;
+    private Animator multiplierTextAnim;
     [Tooltip("The part of the player prefab that consists of the visual part of the player (not the entire player prefab).")]
     [SerializeField] private GameObject playerCube;
     [SerializeField] private GameObject playerExplodedPrefab;
@@ -44,11 +47,17 @@ public class PlayerController : MonoBehaviour
         get { return currentScore; }
         set { currentScore = value < 0 ? 0 : value; }
     }
-    private float ScoreMultiplier
+    public float ScoreMultiplier
     {
         get { return scoreMultiplier; }
-        set { scoreMultiplier = value > maxScoreMultiplier ? maxScoreMultiplier : value; }
+        set
+        {
+            scoreMultiplier = value > maxScoreMultiplier ? maxScoreMultiplier : value;
+            multiplierText.text = $"x{scoreMultiplier}";
+        }
     }
+
+    private float highscore;
 
     private Transform thisTransform; //cache
     private Animator anim;
@@ -76,22 +85,36 @@ public class PlayerController : MonoBehaviour
     {
         thisTransform = transform;
         anim = GetComponentInChildren<Animator>();
+        multiplierTextAnim = multiplierText.gameObject.GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        ScoreMultiplier = scoreMultiplier;
+        secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
+
+        if (Chochosan.SaveLoadManager.IsSaveExists())
+        {
+            highscore = Chochosan.SaveLoadManager.savedGameData.gameData.highscore;
+            Debug.Log("SAVE DETECTED");
+        }
+
+        highscoreText.text = highscore.ToString("F0");
     }
 
     void Update()
     {
         Swipe();
-        if(!isGameLost)
-        {
-            currentScore += Time.deltaTime * ScoreMultiplier;
-            scoreText.text = currentScore.ToString("F0");
-        }      
+
+        if (isGameLost)
+            return;
+
+        currentScore += Time.deltaTime * ScoreMultiplier;
+        scoreText.text = currentScore.ToString("F0");
+
 
         if (Time.time >= secondsToIncreaseMultiplierTimestamp)
         {
             ScoreMultiplier += multiplierIncreasePerTick;
             secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
+            multiplierTextAnim.SetBool("increaseMultiplier", true);
         }
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -160,13 +183,20 @@ public class PlayerController : MonoBehaviour
     {
         rb.AddForce(pushDir * force, ForceMode.Impulse);
         CurrentScore -= force * 5f;
-        ScoreMultiplier = 1f;
+        ResetMultiplier();
     }
 
     public void ExplodePlayer(Vector3 position, float force)
     {
         rb.AddExplosionForce(force, position, 2f, 1f);
+        ResetMultiplier();
+    }
+
+    private void ResetMultiplier()
+    {
         ScoreMultiplier = 1f;
+        multiplierTextAnim.SetBool("decreaseMultiplier", true);
+        secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
     }
 
     private void LoseGame()
@@ -174,7 +204,7 @@ public class PlayerController : MonoBehaviour
         if (isGameLost)
             return;
 
-        StartCoroutine(WaitBeforeStoppingGame());      
+        StartCoroutine(WaitBeforeStoppingGame());
     }
 
     private IEnumerator WaitBeforeStoppingGame()
@@ -182,9 +212,21 @@ public class PlayerController : MonoBehaviour
         isGameLost = true;
         playerCube.SetActive(false);
         playerExplodedObject = Instantiate(playerExplodedPrefab, thisTransform.position, thisTransform.rotation);
-        yield return new WaitForSeconds(3f);
-        Chochosan.EventManager.OnPlayerLost?.Invoke();
-        Time.timeScale = 0f;
+        yield return new WaitForSeconds(2f);
+        if (CurrentScore > highscore)
+        {
+            highscore = CurrentScore;
+            highscoreText.text = highscore.ToString("F0");
+
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.NewHighscore, highscore);
+        }
+        else
+        {
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.GameLost, CurrentScore);
+        }
+
+        Chochosan.SaveLoadManager.SaveGameState();
+        //   Time.timeScale = 0f;
     }
 
     public void Respawn()
@@ -195,6 +237,7 @@ public class PlayerController : MonoBehaviour
         canRollForward = canRollBackwards = false;
         isGameLost = false;
         playerCube.SetActive(true);
+        ScoreMultiplier = 1f;
         Destroy(playerExplodedObject);
     }
 
@@ -227,6 +270,14 @@ public class PlayerController : MonoBehaviour
 
         canRollBackwards = false;
         anim.SetBool("moveBackwards", false);
+    }
+
+    public GameData GetGameDataToSave()
+    {
+        GameData gameData = new GameData();
+        gameData.highscore = highscore;
+
+        return gameData;
     }
 
     #region MobileInput

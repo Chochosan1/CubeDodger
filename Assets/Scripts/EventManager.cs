@@ -9,10 +9,10 @@ namespace Chochosan
     /// </summary>
     public class EventManager : MonoBehaviour
     {    
-        public delegate void OnPlayerLostDelegate();
+        public delegate void OnRequiresNotificationDelegate(UI_Manager.NotificationType notificationType, float value);
         /// <summary>
-        /// Fired when the player loses the game.
+        /// Fired when an action requires a notification to notify the player - e.g., a new highscore or simply losing the game
         /// </summary>
-        public static OnPlayerLostDelegate OnPlayerLost;
+        public static OnRequiresNotificationDelegate OnRequiresNotification;
     }
 }

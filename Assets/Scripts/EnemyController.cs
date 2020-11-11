@@ -21,6 +21,7 @@ public class EnemyController : MonoBehaviour, IInteractable
     private void Start()
     {
         thisTransform = transform;
+        CalculateSpeedAndPushForce();
     }
 
     public void AffectPlayer(PlayerController pc)
@@ -40,11 +41,6 @@ public class EnemyController : MonoBehaviour, IInteractable
     private void Update()
     {
         thisTransform.position = Vector3.MoveTowards(thisTransform.position, thisTransform.position + thisTransform.forward, Time.deltaTime * currentSpeed);
-    }
-
-    private void OnEnable()
-    {
-        CalculateSpeedAndPushForce();
     }
 
     public void CalculateSpeedAndPushForce()
