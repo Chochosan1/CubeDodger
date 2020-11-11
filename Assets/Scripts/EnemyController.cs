@@ -17,6 +17,7 @@ public class EnemyController : MonoBehaviour, IInteractable
     [SerializeField] private float maxSpeed = 6f;
     private float currentSpeed;
     private Transform thisTransform;
+    public bool isVisible = false;
 
     private void Start()
     {
@@ -35,7 +36,30 @@ public class EnemyController : MonoBehaviour, IInteractable
                 pc.PushPlayer(thisTransform.forward, pushForce);
                 break;
         }
+    }
 
+    private void OnBecameVisible()
+    {
+        isVisible = true;
+    }
+
+    private void OnBecameInvisible()
+    {
+        if (isVisible)
+        {
+            gameObject.SetActive(false);
+            isVisible = false;
+        }      
+    }
+
+    public void Reset(Vector3 pos, Quaternion rot)
+    {
+        if (thisTransform == null)
+            thisTransform = transform;
+
+        thisTransform.position = pos;
+        thisTransform.rotation = rot;
+        isVisible = false;
     }
 
     private void Update()

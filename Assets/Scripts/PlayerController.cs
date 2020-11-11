@@ -79,6 +79,12 @@ public class PlayerController : MonoBehaviour
         {
             Instance = this;
         }
+
+        Application.targetFrameRate = 60;
+        if (Application.isMobilePlatform)
+        {
+            QualitySettings.vSyncCount = 0;
+        }
     }
 
     void Start()
@@ -204,6 +210,7 @@ public class PlayerController : MonoBehaviour
         if (isGameLost)
             return;
 
+        Handheld.Vibrate();
         StartCoroutine(WaitBeforeStoppingGame());
     }
 
@@ -311,7 +318,7 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, -cubesPerMove);
                 StartCoroutine(RollForward());
-                Debug.Log("up swipe");
+          //      Debug.Log("up swipe");
             }
             //swipe down
             if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
@@ -325,17 +332,35 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, cubesPerMove);
                 StartCoroutine(RollBackwards());
-                Debug.Log("down swipe");
+           //     Debug.Log("down swipe");
             }
             //swipe left
             if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-                Debug.Log("left swipe");
+            //    Debug.Log("left swipe");
+                if (canRollForward || canRollBackwards)
+                    return;
+
+                anim.SetBool("moveBackwards", true);
+                if (moveSpeed < cubesPerMove * MIN_SPEED)
+                    moveSpeed = cubesPerMove * MIN_SPEED;
+
+                targetPosition = thisTransform.position + new Vector3(0, 0, cubesPerMove);
+                StartCoroutine(RollBackwards());
             }
             //swipe right
             if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-                Debug.Log("right swipe");
+            //    Debug.Log("right swipe");
+                if (canRollForward || canRollBackwards)
+                    return;
+
+                anim.SetBool("moveForward", true);
+                if (moveSpeed < cubesPerMove * MIN_SPEED)
+                    moveSpeed = cubesPerMove * MIN_SPEED;
+
+                targetPosition = thisTransform.position + new Vector3(0, 0, -cubesPerMove);
+                StartCoroutine(RollForward());
             }
         }
     }

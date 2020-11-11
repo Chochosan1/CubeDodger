@@ -30,12 +30,12 @@ public class TileController : MonoBehaviour
     //used to spawn all prefabs from the enemies array at least once
     private int initialEnemySpawnIndex = 0;
 
-    private List<GameObject> enemyPool;
+    private List<EnemyController> enemyPool;
     private List<Renderer> enemyRenderersPool;
 
     private void Start()
     {
-        enemyPool = new List<GameObject>();
+        enemyPool = new List<EnemyController>();
         enemyRenderersPool = new List<Renderer>();
 
         spawnCooldown = Random.Range(minSpawnCooldown, maxSpawnCooldown);
@@ -44,6 +44,8 @@ public class TileController : MonoBehaviour
         //pool size should be the size at least of the enemies array to make sure that all prefabs in the array exist at least once in the game
         if (maxPoolSize < enemies.Length)
             maxPoolSize = enemies.Length;
+
+        SpawnAllEnemiesInitially();
     }
 
     // Update is called once per frame
@@ -70,8 +72,8 @@ public class TileController : MonoBehaviour
                 currentSpawner = Random.Range(0, enemySpawns.Length);
 
                 GameObject enemyCopy = Instantiate(enemies[currentEnemyToSpawn].gameObject, enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);
-                enemyPool.Add(enemyCopy);
-                enemyRenderersPool.Add(enemyCopy.GetComponent<Renderer>());
+                enemyPool.Add(enemyCopy.GetComponent<EnemyController>());
+              //  enemyRenderersPool.Add(enemyCopy.GetComponent<Renderer>());
                 if (enemyPool.Count >= maxPoolSize)
                 {
                     isStillSpawning = false;
@@ -84,12 +86,13 @@ public class TileController : MonoBehaviour
                     currentPoolItem = Random.Range(0, enemyPool.Count);
                 }
 
-                if (!enemyRenderersPool[currentPoolItem].isVisible)
+                if (!enemyPool[currentPoolItem].isVisible /*!enemyRenderersPool[currentPoolItem].isVisible*/)
                 {
-                    enemyPool[currentPoolItem].SetActive(true);
+                    enemyPool[currentPoolItem].gameObject.SetActive(true);
                     currentSpawner = Random.Range(0, enemySpawns.Length);
-                    enemyPool[currentPoolItem].transform.position = enemySpawns[currentSpawner].position;
-                    enemyPool[currentPoolItem].transform.rotation = enemySpawns[currentSpawner].rotation;                  
+                    enemyPool[currentPoolItem].Reset(enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);
+                    //enemyPool[currentPoolItem].transform.position = enemySpawns[currentSpawner].position;
+                    //enemyPool[currentPoolItem].transform.rotation = enemySpawns[currentSpawner].rotation;                  
                 }
                 else
                 {
@@ -102,6 +105,31 @@ public class TileController : MonoBehaviour
                 {
                     currentPoolItem = 0;
                 }
+            }
+        }
+    }
+
+    private void SpawnAllEnemiesInitially()
+    {
+        for (int i = 0; i < maxPoolSize; i++)
+        {
+            if (isSpawnEachEnemyFromPrefabArrayAtLeastOnce && initialEnemySpawnIndex < enemies.Length)
+            {
+                currentEnemyToSpawn = initialEnemySpawnIndex;
+                initialEnemySpawnIndex++;
+            }
+            else
+            {
+                currentEnemyToSpawn = Random.Range(0, enemies.Length);
+            }
+            currentSpawner = Random.Range(0, enemySpawns.Length);
+
+            GameObject enemyCopy = Instantiate(enemies[currentEnemyToSpawn].gameObject, enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);
+            enemyPool.Add(enemyCopy.GetComponent<EnemyController>());
+            enemyCopy.SetActive(false);
+            if (enemyPool.Count >= maxPoolSize)
+            {
+                isStillSpawning = false;
             }
         }
     }
