@@ -28,6 +28,7 @@ public class SpawnerManager : MonoBehaviour
     private int currentPoolItem;
     private int currentSpawner, currentEnemyToSpawn;
     private bool isPatternChosen = false;
+    private int lastPatternChosen = 0;
 
     //used to spawn all prefabs from the enemies array at least once
     private int initialEnemySpawnIndex = 0;
@@ -102,14 +103,28 @@ public class SpawnerManager : MonoBehaviour
                 }
             }
         }
-        else if(isUsePatterns)
+        else if (isUsePatterns)
         {
-            if(!isPatternChosen)
+            if (!isPatternChosen)
             {
-                SpawnPattern1();
+
+                int patternIndex = Random.Range(0, 3);
+
+                //avoid the same pattern running twice consequently
+                if(patternIndex == lastPatternChosen)
+                {
+                    patternIndex++;
+                    if (patternIndex >= 3)
+                        patternIndex = 0;                 
+                }
+
+                SpawnPattern(patternIndex);
                 isPatternChosen = true;
+                lastPatternChosen = patternIndex;
+                //   int patternIndex = 2;
+               
             }
-           
+
         }
     }
 
@@ -138,17 +153,30 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
-    private void SpawnPattern1()
+    private void SpawnPattern(int patternIndex)
     {
-        StartCoroutine(StartPattern1());
+        switch (patternIndex)
+        {
+            case 0:
+                StartCoroutine(StartPattern0());
+                break;
+            case 1:
+                StartCoroutine(StartPattern1());
+                break;
+            case 2:
+                StartCoroutine(StartPattern2());
+                break;
+        }
+
     }
 
     /// <summary>
-    /// Uses all spawners from one of the sides consquentially. Enemies spawned are recycled from the pool and are also chosen consequentially.
+    /// Uses all spawners from one of the sides consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator StartPattern1()
+    private IEnumerator StartPattern0()
     {
+        Debug.Log("TOP PATTERN");
         float timeBetweenEnemies = 1f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
@@ -156,17 +184,110 @@ public class SpawnerManager : MonoBehaviour
         currentPoolItem = 0;
         while (isPatternExecuting)
         {
+            timeBetweenEnemies = 1f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
                 currentPoolItem = 0;
-            Debug.Log("SPAWN AT: " + enemySpawnsUp[currentSpawner].name);
+         //   Debug.Log("SPAWN AT: " + enemySpawnsUp[currentSpawner].name);
             enemyPool[currentPoolItem].gameObject.SetActive(true);
             enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
-            currentSpawner++;          
+            currentSpawner++;
             currentPoolItem++;
             enemiesSpawned++;
+
+            if (enemiesSpawned % 3 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+            }
+
             if (enemiesSpawned >= 18)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        isPatternChosen = false;
+    }
+
+    private IEnumerator StartPattern1()
+    {
+        Debug.Log("BOT PATTERN");
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        currentSpawner = 0;
+        currentPoolItem = 0;
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            if (currentSpawner >= enemySpawnsUp.Length)
+                currentSpawner = 0;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+         //   Debug.Log("SPAWN AT: " + enemySpawnsDown[currentSpawner].name);
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
+            currentSpawner++;
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            if (enemiesSpawned % 3 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+            }
+
+            if (enemiesSpawned >= 9)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        isPatternChosen = false;
+    }
+
+    private IEnumerator StartPattern2()
+    {
+        Debug.Log("MIXED PATTERN");
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        int isTopOrBot = 0; //0 for top; 1 for bot
+        currentSpawner = 0;
+        currentPoolItem = 0;
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            if (currentSpawner >= enemySpawnsUp.Length)
+                currentSpawner = 0;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+            if (isTopOrBot >= 2)
+                isTopOrBot = 0;
+
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            if (isTopOrBot == 0)
+            {
+                enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
+              //  Debug.Log("SPAWN AT: " + enemySpawnsUp[currentSpawner].name);
+            }
+            else if (isTopOrBot == 1)
+            {
+                enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
+             //   Debug.Log("SPAWN AT: " + enemySpawnsDown[currentSpawner].name);
+            }
+
+            currentSpawner++;
+            currentPoolItem++;
+            enemiesSpawned++;
+            isTopOrBot++;
+
+            if (enemiesSpawned % 3 == 0)
+                timeBetweenEnemies *= 2f;
+
+            if (enemiesSpawned >= 9)
             {
                 isPatternExecuting = false;
             }

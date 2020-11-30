@@ -4078,6 +4078,7 @@ MonoBehaviour:
   maxPoolSize: 36
   isSpawnEachEnemyFromPrefabArrayAtLeastOnce: 1
   isPoolSystemChooseRandomEnemy: 1
+  isUsePatterns: 1
 --- !u!1 &1830215673
 GameObject:
   m_ObjectHideFlags: 0

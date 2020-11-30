@@ -59,7 +59,11 @@ public class EnemyController : MonoBehaviour, IInteractable
         }
         else
         {
-            pc.CurrentScore += pushForce;
+            if (pc.IsMaxMultiplierReached())
+                pc.CurrentScore += pushForce * 2.5f;
+            else
+                pc.CurrentScore += pushForce;
+
             pc.IncreaseMultiplier();
         }
 
@@ -80,7 +84,7 @@ public class EnemyController : MonoBehaviour, IInteractable
         {
             gameObject.SetActive(false);
             isVisible = false;
-        }      
+        }
     }
 
     public void Reset(Vector3 pos, Quaternion rot)

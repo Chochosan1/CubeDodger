@@ -262,6 +262,11 @@ public class PlayerController : MonoBehaviour
         SwitchPlayerColourRandomly();
     }
 
+    public bool IsMaxMultiplierReached()
+    {
+        return maxScoreMultiplier == ScoreMultiplier;
+    }
+
     private void LoseGame()
     {
         if (isGameLost)
