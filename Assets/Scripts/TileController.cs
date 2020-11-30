@@ -14,6 +14,8 @@ public class TileController : MonoBehaviour
     [SerializeField] private GameObject[] enemies;
 
     [Header("Properties")]
+    [Tooltip("How much later after starting the level should the enemy spawn (after that the enemies will use the min/max cooldowns)?")]
+    [SerializeField] private float initialSpawnCooldown = 1f;
     [SerializeField] private float minSpawnCooldown = 1f;
     [SerializeField] private float maxSpawnCooldown = 3f;
     [SerializeField] private int maxPoolSize = 5;
@@ -31,15 +33,12 @@ public class TileController : MonoBehaviour
     private int initialEnemySpawnIndex = 0;
 
     private List<EnemyController> enemyPool;
-    private List<Renderer> enemyRenderersPool;
 
     private void Start()
     {
         enemyPool = new List<EnemyController>();
-        enemyRenderersPool = new List<Renderer>();
 
-        spawnCooldown = Random.Range(minSpawnCooldown, maxSpawnCooldown);
-        spawnTimestamp = Time.time + spawnCooldown;
+        spawnTimestamp = Time.time + initialSpawnCooldown;
 
         //pool size should be the size at least of the enemies array to make sure that all prefabs in the array exist at least once in the game
         if (maxPoolSize < enemies.Length)
@@ -48,7 +47,6 @@ public class TileController : MonoBehaviour
         SpawnAllEnemiesInitially();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Time.time >= spawnTimestamp)
@@ -73,7 +71,6 @@ public class TileController : MonoBehaviour
 
                 GameObject enemyCopy = Instantiate(enemies[currentEnemyToSpawn].gameObject, enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);
                 enemyPool.Add(enemyCopy.GetComponent<EnemyController>());
-              //  enemyRenderersPool.Add(enemyCopy.GetComponent<Renderer>());
                 if (enemyPool.Count >= maxPoolSize)
                 {
                     isStillSpawning = false;
@@ -86,13 +83,11 @@ public class TileController : MonoBehaviour
                     currentPoolItem = Random.Range(0, enemyPool.Count);
                 }
 
-                if (!enemyPool[currentPoolItem].isVisible /*!enemyRenderersPool[currentPoolItem].isVisible*/)
+                if (!enemyPool[currentPoolItem].isVisible)
                 {
                     enemyPool[currentPoolItem].gameObject.SetActive(true);
                     currentSpawner = Random.Range(0, enemySpawns.Length);
-                    enemyPool[currentPoolItem].Reset(enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);
-                    //enemyPool[currentPoolItem].transform.position = enemySpawns[currentSpawner].position;
-                    //enemyPool[currentPoolItem].transform.rotation = enemySpawns[currentSpawner].rotation;                  
+                    enemyPool[currentPoolItem].Reset(enemySpawns[currentSpawner].position, enemySpawns[currentSpawner].rotation);     
                 }
                 else
                 {

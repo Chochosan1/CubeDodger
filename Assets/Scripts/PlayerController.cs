@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
+    public enum CubeColor { Red, Blue, Yellow, Green }
     public static PlayerController Instance;
 
     private const float MIN_SPEED = 6f;
@@ -16,16 +17,36 @@ public class PlayerController : MonoBehaviour
     [Range(MIN_SPEED, 100)]
     [SerializeField] private float moveSpeed = MIN_SPEED;
 
+    [Header("Colours")]
+    [ColorUsage(true, true)]
+    [SerializeField] private Color redColor;
+    [ColorUsage(true, true)]
+    [SerializeField] private Color blueColor;
+    [ColorUsage(true, true)]
+    [SerializeField] private Color greenColor;
+    [ColorUsage(true, true)]
+    [SerializeField] private Color yellowColor;
+    [SerializeField] private CubeColor startColor;
+    private CubeColor lastColor;
+    private CubeColor currentColor;
+
+    [Header("Camera")]
+    [SerializeField] private Transform cameraGame;
+    [SerializeField] private float shakeDuration = 0.1f;
+    [SerializeField] private float shakeMagnitude = 0.5f;
+
     [Header("References")]
     [SerializeField] private Transform respawnTransform;
     [SerializeField] private GameObject moveParticle;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
     [SerializeField] private TMPro.TextMeshProUGUI highscoreText;
     [SerializeField] private TMPro.TextMeshProUGUI multiplierText;
+    [SerializeField] private UnityEngine.UI.Slider multiplierBar;
     private Animator multiplierTextAnim;
     [Tooltip("The part of the player prefab that consists of the visual part of the player (not the entire player prefab).")]
     [SerializeField] private GameObject playerCube;
     [SerializeField] private GameObject playerExplodedPrefab;
+    private Material playerMat;
 
     [Header("Collision")]
     [SerializeField] private LayerMask layersToGetAffectedBy;
@@ -42,7 +63,7 @@ public class PlayerController : MonoBehaviour
     private float secondsToIncreaseMultiplierTimestamp;
     private bool isGameLost = false;
     private float currentScore = 0f;
-    private float CurrentScore
+    public float CurrentScore
     {
         get { return currentScore; }
         set { currentScore = value < 0 ? 0 : value; }
@@ -56,6 +77,7 @@ public class PlayerController : MonoBehaviour
             multiplierText.text = $"x{scoreMultiplier}";
         }
     }
+
 
     private float highscore;
 
@@ -72,6 +94,8 @@ public class PlayerController : MonoBehaviour
 
     private bool canRollForward = false;
     private bool canRollBackwards = false;
+    private bool isCurrentlyMoving = false;
+    private bool isCameraShaking = false;
 
     private void Awake()
     {
@@ -89,12 +113,22 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        playerMat = GetComponentInChildren<Renderer>().material;
+        //   defaultColor = playerMat.GetColor("_EmissionColor");
+
+        currentColor = startColor;
+        SwitchPlayerColour(currentColor);
+
+     
+
         thisTransform = transform;
         anim = GetComponentInChildren<Animator>();
         multiplierTextAnim = multiplierText.gameObject.GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         ScoreMultiplier = scoreMultiplier;
         secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
+        multiplierBar.maxValue = secondsToIncreaseMultiplier;
+        multiplierBar.value = 0f;
 
         if (Chochosan.SaveLoadManager.IsSaveExists())
         {
@@ -114,13 +148,11 @@ public class PlayerController : MonoBehaviour
 
         currentScore += Time.deltaTime * ScoreMultiplier;
         scoreText.text = currentScore.ToString("F0");
-
+        multiplierBar.value += Time.deltaTime;
 
         if (Time.time >= secondsToIncreaseMultiplierTimestamp)
         {
-            ScoreMultiplier += multiplierIncreasePerTick;
-            secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
-            multiplierTextAnim.SetBool("increaseMultiplier", true);
+            IncreaseMultiplier();
         }
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -157,26 +189,36 @@ public class PlayerController : MonoBehaviour
         if (canRollForward)
         {
             thisTransform.position = Vector3.MoveTowards(thisTransform.position, targetPosition, moveSpeed * Time.deltaTime);
+            isCurrentlyMoving = true;
         }
         else if (canRollBackwards)
         {
             thisTransform.position = Vector3.MoveTowards(thisTransform.position, targetPosition, moveSpeed * Time.deltaTime);
+            isCurrentlyMoving = true;
+        }
+        else
+        {
+            isCurrentlyMoving = false;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (isGameLost)
+            return;
+
         if (layersToGetAffectedBy == (layersToGetAffectedBy | (1 << other.gameObject.layer)))
         {
+            if (!isCameraShaking)
+                StartCoroutine(CameraShake(shakeDuration, shakeMagnitude));
+
             if (other.gameObject.CompareTag("KillZone"))
             {
                 LoseGame();
                 return;
             }
 
-            other.gameObject.GetComponent<IInteractable>().AffectPlayer(this);
-
-            other.gameObject.SetActive(false);
+            other.gameObject.GetComponent<IInteractable>().AffectPlayer(this, isCurrentlyMoving);
         }
     }
 
@@ -188,7 +230,7 @@ public class PlayerController : MonoBehaviour
     public void PushPlayer(Vector3 pushDir, float force)
     {
         rb.AddForce(pushDir * force, ForceMode.Impulse);
-        CurrentScore -= force * 5f;
+        CurrentScore -= force;
         ResetMultiplier();
     }
 
@@ -203,6 +245,19 @@ public class PlayerController : MonoBehaviour
         ScoreMultiplier = 1f;
         multiplierTextAnim.SetBool("decreaseMultiplier", true);
         secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
+        multiplierBar.maxValue = secondsToIncreaseMultiplier;
+        multiplierBar.value = 0f;
+    }
+
+    public void IncreaseMultiplier()
+    {
+        ScoreMultiplier += multiplierIncreasePerTick;
+        secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
+        multiplierTextAnim.SetBool("increaseMultiplier", true);
+        multiplierBar.maxValue = secondsToIncreaseMultiplier;
+        multiplierBar.value = 0f;
+
+        SwitchPlayerColourRandomly();
     }
 
     private void LoseGame()
@@ -234,6 +289,57 @@ public class PlayerController : MonoBehaviour
 
         Chochosan.SaveLoadManager.SaveGameState();
         //   Time.timeScale = 0f;
+    }
+
+    private void SwitchPlayerColourRandomly()
+    {
+        currentColor = (CubeColor)Random.Range(0, 3);
+        if (currentColor == lastColor)
+        {
+            currentColor++;
+            Debug.Log("CAUGHT SAME COLOR");
+        }
+        switch (currentColor)
+        {
+            case CubeColor.Blue:
+                playerMat.SetColor("_EmissionColor", blueColor);
+                break;
+            case CubeColor.Red:
+                playerMat.SetColor("_EmissionColor", redColor);
+                break;
+            case CubeColor.Yellow:
+                playerMat.SetColor("_EmissionColor", yellowColor);
+                break;
+            case CubeColor.Green:
+                playerMat.SetColor("_EmissionColor", greenColor);
+                break;
+        }
+        lastColor = currentColor;
+    }
+
+    private void SwitchPlayerColour(CubeColor currentColor)
+    {
+        switch (currentColor)
+        {
+            case CubeColor.Blue:
+                playerMat.SetColor("_EmissionColor", blueColor);
+                break;
+            case CubeColor.Red:
+                playerMat.SetColor("_EmissionColor", redColor);
+                break;
+            case CubeColor.Yellow:
+                playerMat.SetColor("_EmissionColor", yellowColor);
+                break;
+            case CubeColor.Green:
+                playerMat.SetColor("_EmissionColor", greenColor);
+                break;
+        }
+        lastColor = currentColor;
+    }
+
+    public CubeColor GetPlayerCurrentColor()
+    {
+        return currentColor;
     }
 
     public void Respawn()
@@ -287,6 +393,29 @@ public class PlayerController : MonoBehaviour
         return gameData;
     }
 
+    private IEnumerator CameraShake(float duration, float magnitude)
+    {
+        isCameraShaking = true;
+        Vector3 originalPos = cameraGame.localPosition;
+
+        float elapsed = 0.0f;
+
+        while (elapsed < duration)
+        {
+            float x = Random.Range(cameraGame.position.x - magnitude, cameraGame.position.x + magnitude);
+            float y = Random.Range(cameraGame.position.y - magnitude, cameraGame.position.y + magnitude);
+
+            cameraGame.position = new Vector3(x, y, originalPos.z);
+            elapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        cameraGame.position = originalPos;
+
+        isCameraShaking = false;
+    }
+
     #region MobileInput
     private void Swipe()
     {
@@ -318,7 +447,7 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, -cubesPerMove);
                 StartCoroutine(RollForward());
-          //      Debug.Log("up swipe");
+                //      Debug.Log("up swipe");
             }
             //swipe down
             if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
@@ -332,12 +461,12 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, cubesPerMove);
                 StartCoroutine(RollBackwards());
-           //     Debug.Log("down swipe");
+                //     Debug.Log("down swipe");
             }
             //swipe left
             if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-            //    Debug.Log("left swipe");
+                //    Debug.Log("left swipe");
                 if (canRollForward || canRollBackwards)
                     return;
 
@@ -351,7 +480,7 @@ public class PlayerController : MonoBehaviour
             //swipe right
             if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-            //    Debug.Log("right swipe");
+                //    Debug.Log("right swipe");
                 if (canRollForward || canRollBackwards)
                     return;
 

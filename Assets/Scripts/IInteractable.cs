@@ -10,5 +10,5 @@ public interface IInteractable
     /// Affects the player in a certain way. A good moment to use this is upon collision.
     /// </summary>
     /// <param name="pc"></param>
-    void AffectPlayer(PlayerController pc);
+    void AffectPlayer(PlayerController pc, bool isCurrentlyMoving);
 }
