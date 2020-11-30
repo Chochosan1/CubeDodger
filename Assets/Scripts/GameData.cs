@@ -6,4 +6,5 @@ using UnityEngine;
 public class GameData
 {
     public float highscore;
+    public int coinsAmount;
 }

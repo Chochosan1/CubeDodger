@@ -50,17 +50,17 @@ namespace Chochosan
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneToReload);
         }
 
-        private void ShowNotification(NotificationType notificationType, float value)
+        private void ShowNotification(NotificationType notificationType, string message)
         {
             switch(notificationType)
             {
                 case NotificationType.NewHighscore:
                     notificationDescriptionText.text = "New Highscore!";
-                    notifcationValueText.text = value.ToString("F0");
+                    notifcationValueText.text = message;
                     break;
                 case NotificationType.GameLost:
                     notificationDescriptionText.text = "You were shattered!";
-                    notifcationValueText.text = value.ToString("F0");
+                    notifcationValueText.text = message;
                     break;
             }
             notificationPanel.SetActive(true);

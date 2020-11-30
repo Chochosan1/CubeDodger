@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour
 
     private float highscore;
 
+    private int currentCoinsAmount;
     private Transform thisTransform; //cache
     private Animator anim;
     private Rigidbody rb;
@@ -133,6 +134,7 @@ public class PlayerController : MonoBehaviour
         if (Chochosan.SaveLoadManager.IsSaveExists())
         {
             highscore = Chochosan.SaveLoadManager.savedGameData.gameData.highscore;
+            currentCoinsAmount = Chochosan.SaveLoadManager.savedGameData.gameData.coinsAmount;
             Debug.Log("SAVE DETECTED");
         }
 
@@ -265,6 +267,7 @@ public class PlayerController : MonoBehaviour
         if (isGameLost)
             return;
 
+        
         Handheld.Vibrate();
         StartCoroutine(WaitBeforeStoppingGame());
     }
@@ -274,21 +277,23 @@ public class PlayerController : MonoBehaviour
         isGameLost = true;
         playerCube.SetActive(false);
         playerExplodedObject = Instantiate(playerExplodedPrefab, thisTransform.position, thisTransform.rotation);
+        int coinsToWin = (int)Mathf.Ceil(CurrentScore * 0.05f);
+        currentCoinsAmount += coinsToWin;
+
         yield return new WaitForSeconds(2f);
         if (CurrentScore > highscore)
         {
             highscore = CurrentScore;
             highscoreText.text = highscore.ToString("F0");
 
-            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.NewHighscore, highscore);
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.NewHighscore, highscore.ToString());
         }
         else
         {
-            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.GameLost, CurrentScore);
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.GameLost, "Score: " + CurrentScore.ToString("F0") + "\n" + "Coins: " + coinsToWin.ToString("F0"));
         }
 
         Chochosan.SaveLoadManager.SaveGameState();
-        //   Time.timeScale = 0f;
     }
 
     private void SwitchPlayerColourRandomly()
@@ -380,6 +385,7 @@ public class PlayerController : MonoBehaviour
     {
         GameData gameData = new GameData();
         gameData.highscore = highscore;
+        gameData.coinsAmount = currentCoinsAmount;
 
         return gameData;
     }
