@@ -17,7 +17,6 @@ public class EnemyController : MonoBehaviour, IInteractable
     [SerializeField] private float pushForceMultiplier = 0.2f;
     [SerializeField] private float minSpeed = 3f;
     [SerializeField] private float maxSpeed = 6f;
-    [SerializeField] private float numSpeedWillNeverExceed = 6f;
     [Tooltip("How long after hitting the player should the gameobject get disabled?")]
     [SerializeField] private float disableObjectAfter = 0.25f;
 
@@ -110,9 +109,7 @@ public class EnemyController : MonoBehaviour, IInteractable
     private void CalculateSpeedAndPushForce()
     {
         currentSpeed = Random.Range(minSpeed, maxSpeed);
-        currentSpeed += PlayerController.Instance.ScoreMultiplier / 10f + PlayerController.Instance.CurrentScore * 0.01f;
-        if (currentSpeed > numSpeedWillNeverExceed)
-            currentSpeed = numSpeedWillNeverExceed;
+        currentSpeed += SpawnerManager.Instance.GetCurrentSpeedBoost();
 
         pushForce += currentSpeed * 0.2f;      
     }

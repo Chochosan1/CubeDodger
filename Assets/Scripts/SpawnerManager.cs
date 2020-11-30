@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class SpawnerManager : MonoBehaviour
 {
+    public static SpawnerManager Instance;
+
     [Header("Spawners")]
     [SerializeField] private Transform[] enemySpawnsUp;
     [SerializeField] private Transform[] enemySpawnsDown;
@@ -22,6 +24,7 @@ public class SpawnerManager : MonoBehaviour
     [Tooltip("If true the pooling system will reuse enemies randomly. If false it will cycle through the pool from the beginning to the end then reset.")]
     [SerializeField] private bool isPoolSystemChooseRandomEnemy = false;
     [SerializeField] private bool isUsePatterns = true;
+    [SerializeField] private float absoluteMaximumSpeedBoost = 3f;
     private float spawnCooldown;
     private float spawnTimestamp;
     private bool isStillSpawning = true;
@@ -29,16 +32,24 @@ public class SpawnerManager : MonoBehaviour
     private int currentSpawner, currentEnemyToSpawn;
     private bool isPatternChosen = false;
     private int lastPatternChosen = 0;
+    private float enemySpeedBooster = 0f;
 
     //used to spawn all prefabs from the enemies array at least once
     private int initialEnemySpawnIndex = 0;
 
     private List<EnemyController> enemyPool;
 
+    private void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+    }
+
     private void Start()
     {
         enemyPool = new List<EnemyController>();
-
         spawnTimestamp = Time.time + initialSpawnCooldown;
 
         //pool size should be the size at least of the enemies array to make sure that all prefabs in the array exist at least once in the game
@@ -152,6 +163,20 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
+    private void DetermineSpeedBoost()
+    {
+        enemySpeedBooster = PlayerController.Instance.ScoreMultiplier / 10f + PlayerController.Instance.CurrentScore * 0.01f;
+        if (enemySpeedBooster >= absoluteMaximumSpeedBoost)
+            enemySpeedBooster = absoluteMaximumSpeedBoost;
+
+        Debug.Log(enemySpeedBooster);
+    }
+
+    public float GetCurrentSpeedBoost()
+    {
+        return enemySpeedBooster;
+    }
+
     private void SpawnPattern(int patternIndex)
     {
         switch (patternIndex)
@@ -175,7 +200,7 @@ public class SpawnerManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator StartPattern0()
     {
-        Debug.Log("TOP PATTERN");
+     //   Debug.Log("TOP PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
@@ -184,6 +209,9 @@ public class SpawnerManager : MonoBehaviour
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -199,6 +227,7 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+                DetermineSpeedBoost();
             }
 
             if (enemiesSpawned >= 18)
@@ -217,7 +246,7 @@ public class SpawnerManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator StartPattern1()
     {
-        Debug.Log("BOT PATTERN");
+    //    Debug.Log("BOT PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
@@ -226,6 +255,9 @@ public class SpawnerManager : MonoBehaviour
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -241,6 +273,7 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+                DetermineSpeedBoost();
             }
 
             if (enemiesSpawned >= 9)
@@ -259,7 +292,7 @@ public class SpawnerManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator StartPattern2()
     {
-        Debug.Log("MIXED PATTERN");
+     //   Debug.Log("MIXED PATTERN");
         float timeBetweenEnemies = 1f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
@@ -269,6 +302,9 @@ public class SpawnerManager : MonoBehaviour
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 1f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.65f)
+                timeBetweenEnemies = 0.65f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -295,7 +331,11 @@ public class SpawnerManager : MonoBehaviour
 
             //wait a bit more time between waves
             if (enemiesSpawned % 3 == 0)
+            {
                 timeBetweenEnemies *= 1.5f;
+                DetermineSpeedBoost();
+            }
+                
 
             if (enemiesSpawned >= 9)
             {
