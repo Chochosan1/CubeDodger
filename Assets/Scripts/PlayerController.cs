@@ -376,15 +376,6 @@ public class PlayerController : MonoBehaviour
         moveParticle.SetActive(false);
     }
 
-    public void StopRolls()
-    {
-        canRollForward = false;
-        anim.SetBool("moveForward", false);
-
-        canRollBackwards = false;
-        anim.SetBool("moveBackwards", false);
-    }
-
     public GameData GetGameDataToSave()
     {
         GameData gameData = new GameData();
