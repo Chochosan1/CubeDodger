@@ -38391,8 +38391,9 @@ MonoBehaviour:
   pushForce: 1
   explodeForce: 500
   pushForceMultiplier: 0.1
-  minSpeed: 3
-  maxSpeed: 6
+  minSpeed: 3.5
+  maxSpeed: 3.5
+  numSpeedWillNeverExceed: 6
   disableObjectAfter: 0.5
   hitParticle: {fileID: 713291265850151669}
   mainParticle: {fileID: 3008155771570947400}

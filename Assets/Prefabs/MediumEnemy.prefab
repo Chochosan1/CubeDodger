@@ -14471,12 +14471,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d0dc0063856c98439e567149494e7df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyColor: 0
   enemyAttack: 0
   pushForce: 1.5
   explodeForce: 500
   pushForceMultiplier: 0.2
-  minSpeed: 2.5
-  maxSpeed: 5
+  minSpeed: 3.5
+  maxSpeed: 3.5
+  numSpeedWillNeverExceed: 6
   disableObjectAfter: 0.5
   hitParticle: {fileID: 5448091074723376818}
   mainParticle: {fileID: 2659427250497400204}

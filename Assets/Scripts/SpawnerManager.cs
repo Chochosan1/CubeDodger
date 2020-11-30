@@ -107,7 +107,6 @@ public class SpawnerManager : MonoBehaviour
         {
             if (!isPatternChosen)
             {
-
                 int patternIndex = Random.Range(0, 3);
 
                 //avoid the same pattern running twice consequently
@@ -121,13 +120,13 @@ public class SpawnerManager : MonoBehaviour
                 SpawnPattern(patternIndex);
                 isPatternChosen = true;
                 lastPatternChosen = patternIndex;
-                //   int patternIndex = 2;
-               
+                //   int patternIndex = 2;           
             }
 
         }
     }
 
+    /// <summary>Will load all enemies from the prefab list into the pool.</summary>
     private void SpawnAllEnemiesInitially()
     {
         for (int i = 0; i < maxPoolSize; i++)
@@ -171,31 +170,32 @@ public class SpawnerManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Uses all spawners from one of the sides consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// Uses all spawners from the top side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
     private IEnumerator StartPattern0()
     {
         Debug.Log("TOP PATTERN");
-        float timeBetweenEnemies = 1f;
+        float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 0;
         currentPoolItem = 0;
         while (isPatternExecuting)
         {
-            timeBetweenEnemies = 1f;
+            timeBetweenEnemies = 0.8f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
                 currentPoolItem = 0;
-         //   Debug.Log("SPAWN AT: " + enemySpawnsUp[currentSpawner].name);
+
             enemyPool[currentPoolItem].gameObject.SetActive(true);
             enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
             currentSpawner++;
             currentPoolItem++;
             enemiesSpawned++;
 
+            //wait a bit more time between waves
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
@@ -211,6 +211,10 @@ public class SpawnerManager : MonoBehaviour
         isPatternChosen = false;
     }
 
+    /// <summary>
+    /// Uses all spawners from the bot side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator StartPattern1()
     {
         Debug.Log("BOT PATTERN");
@@ -226,13 +230,14 @@ public class SpawnerManager : MonoBehaviour
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
                 currentPoolItem = 0;
-         //   Debug.Log("SPAWN AT: " + enemySpawnsDown[currentSpawner].name);
+
             enemyPool[currentPoolItem].gameObject.SetActive(true);
             enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
             currentSpawner++;
             currentPoolItem++;
             enemiesSpawned++;
 
+            //wait a bit more time between waves
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
@@ -248,10 +253,14 @@ public class SpawnerManager : MonoBehaviour
         isPatternChosen = false;
     }
 
+    /// <summary>
+    /// Uses all spawners from both sides consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator StartPattern2()
     {
         Debug.Log("MIXED PATTERN");
-        float timeBetweenEnemies = 0.8f;
+        float timeBetweenEnemies = 1f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         int isTopOrBot = 0; //0 for top; 1 for bot
@@ -259,7 +268,7 @@ public class SpawnerManager : MonoBehaviour
         currentPoolItem = 0;
         while (isPatternExecuting)
         {
-            timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies = 1f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -284,8 +293,9 @@ public class SpawnerManager : MonoBehaviour
             enemiesSpawned++;
             isTopOrBot++;
 
+            //wait a bit more time between waves
             if (enemiesSpawned % 3 == 0)
-                timeBetweenEnemies *= 2f;
+                timeBetweenEnemies *= 1.5f;
 
             if (enemiesSpawned >= 9)
             {
