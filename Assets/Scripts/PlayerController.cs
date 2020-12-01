@@ -311,7 +311,7 @@ public class PlayerController : MonoBehaviour
         if (currentColor == lastColor)
         {
             currentColor++;
-            Debug.Log("CAUGHT SAME COLOR");
+        //    Debug.Log("CAUGHT SAME COLOR");
         }
         switch (currentColor)
         {

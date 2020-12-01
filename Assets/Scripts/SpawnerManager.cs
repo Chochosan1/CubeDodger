@@ -133,7 +133,7 @@ public class SpawnerManager : MonoBehaviour
                 
                 int enemiesToSpawnIndex = Random.Range(0, enemiesToSpawnValues.Length);
                 SpawnPattern(patternIndex, enemiesToSpawnValues[enemiesToSpawnIndex]);
-                Debug.Log("SPAWN " + enemiesToSpawnValues[enemiesToSpawnIndex]);
+           //     Debug.Log("SPAWN " + enemiesToSpawnValues[enemiesToSpawnIndex]);
                 isPatternChosen = true;
                 lastPatternChosen = patternIndex;
                 //   int patternIndex = 2;           
@@ -174,7 +174,7 @@ public class SpawnerManager : MonoBehaviour
         if (enemySpeedBooster >= absoluteMaximumSpeedBoost)
             enemySpeedBooster = absoluteMaximumSpeedBoost;
 
-        Debug.Log(enemySpeedBooster);
+
     }
 
     public float GetCurrentSpeedBoost()
