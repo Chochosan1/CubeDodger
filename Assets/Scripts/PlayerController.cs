@@ -9,13 +9,17 @@ public class PlayerController : MonoBehaviour
 {
     public enum CubeColor { Red, Blue, Yellow, Green }
     public static PlayerController Instance;
-
-    private const float MIN_SPEED = 6f;
+    //2anim; 6 speed; 0.2 delay for slow not snappy movement
+    private const float MIN_SPEED = 10f;
+    private const float MIN_DELAY_BETWEEN_JUMPS = 0.1f; //the min delay should allow the player to reach its destination before stopping
 
     [Header("Movement")]
     [SerializeField] private int cubesPerMove = 1;
     [Range(MIN_SPEED, 100)]
     [SerializeField] private float moveSpeed = MIN_SPEED;
+    [Range(MIN_DELAY_BETWEEN_JUMPS, 1)]
+    [Tooltip("The delay between individual jumps. Players will not be allowed to jump again before that time has passed since his last jump.")]
+    [SerializeField] private float delayBetweenJumps = 0.2f;
 
     [Header("Colours")]
     [ColorUsage(true, true)]
@@ -120,7 +124,7 @@ public class PlayerController : MonoBehaviour
         currentColor = startColor;
         SwitchPlayerColour(currentColor);
 
-     
+
 
         thisTransform = transform;
         anim = GetComponentInChildren<Animator>();
@@ -272,7 +276,7 @@ public class PlayerController : MonoBehaviour
         if (isGameLost)
             return;
 
-        
+
         Handheld.Vibrate();
         StartCoroutine(WaitBeforeStoppingGame());
     }
@@ -369,7 +373,7 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.05f);
         canRollForward = true;
         moveParticle.SetActive(true);
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(delayBetweenJumps);
         canRollForward = false;
         anim.SetBool("moveForward", false);
         moveParticle.SetActive(false);
@@ -380,7 +384,9 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.05f);
         canRollBackwards = true;
         moveParticle.SetActive(true);
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(delayBetweenJumps / 2f);
+
+        yield return new WaitForSeconds(delayBetweenJumps);
         canRollBackwards = false;
         anim.SetBool("moveBackwards", false);
         moveParticle.SetActive(false);
@@ -457,6 +463,8 @@ public class PlayerController : MonoBehaviour
                 if (canRollForward || canRollBackwards)
                     return;
 
+
+
                 anim.SetBool("moveBackwards", true);
                 if (moveSpeed < cubesPerMove * MIN_SPEED)
                     moveSpeed = cubesPerMove * MIN_SPEED;
@@ -472,6 +480,7 @@ public class PlayerController : MonoBehaviour
                 if (canRollForward || canRollBackwards)
                     return;
 
+
                 anim.SetBool("moveBackwards", true);
                 if (moveSpeed < cubesPerMove * MIN_SPEED)
                     moveSpeed = cubesPerMove * MIN_SPEED;
@@ -485,6 +494,7 @@ public class PlayerController : MonoBehaviour
                 //    Debug.Log("right swipe");
                 if (canRollForward || canRollBackwards)
                     return;
+
 
                 anim.SetBool("moveForward", true);
                 if (moveSpeed < cubesPerMove * MIN_SPEED)

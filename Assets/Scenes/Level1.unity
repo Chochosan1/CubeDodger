@@ -4072,6 +4072,7 @@ MonoBehaviour:
   - {fileID: 4735564978419613616, guid: 3a8a05c0abcab2f47bf903d06da5a6b9, type: 3}
   - {fileID: 5664562177764982810, guid: f14eab4933d14ef4babd734e654e1aee, type: 3}
   - {fileID: 5285729817114113910, guid: 5348748c4807953498a876ec63cedfda, type: 3}
+  enemiesToSpawnValues: 0300000006000000090000000c0000000f000000
   initialSpawnCooldown: 1
   minSpawnCooldown: 1
   maxSpawnCooldown: 3
@@ -4079,6 +4080,7 @@ MonoBehaviour:
   isSpawnEachEnemyFromPrefabArrayAtLeastOnce: 1
   isPoolSystemChooseRandomEnemy: 1
   isUsePatterns: 1
+  absoluteMaximumSpeedBoost: 3
 --- !u!1 &1830215673
 GameObject:
   m_ObjectHideFlags: 0
@@ -4926,17 +4928,17 @@ PrefabInstance:
     - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
         type: 3}
       propertyPath: redColor.r
-      value: 1.7670544
+      value: 1.9935024
       objectReference: {fileID: 0}
     - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
         type: 3}
       propertyPath: redColor.g
-      value: 0.7031211
+      value: 0.32360753
       objectReference: {fileID: 0}
     - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
         type: 3}
       propertyPath: redColor.b
-      value: 0.4440765
+      value: 0.27269614
       objectReference: {fileID: 0}
     - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
         type: 3}
@@ -5033,6 +5035,16 @@ PrefabInstance:
       propertyPath: multiplierBar
       value: 
       objectReference: {fileID: 349041389}
+    - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
+        type: 3}
+      propertyPath: delayBetweenJumps
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1336929769905883599, guid: 6bc9474a569b18f4dbad091e5981237b,
+        type: 3}
+      propertyPath: moveSpeed
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 576160, guid: 6bc9474a569b18f4dbad091e5981237b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 6bc9474a569b18f4dbad091e5981237b, type: 3}

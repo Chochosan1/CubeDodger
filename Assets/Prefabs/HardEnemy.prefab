@@ -23991,7 +23991,6 @@ MonoBehaviour:
   pushForceMultiplier: 0.3
   minSpeed: 3.5
   maxSpeed: 3.5
-  numSpeedWillNeverExceed: 6
   disableObjectAfter: 0.5
   hitParticle: {fileID: 4110093185327490707}
   mainParticle: {fileID: 7146252490088393481}
@@ -24256,7 +24255,7 @@ ParticleSystem:
     startColor:
       serializedVersion: 2
       minMaxState: 2
-      minColor: {r: 1, g: 0.66430444, b: 0.19117647, a: 1}
+      minColor: {r: 0.9716981, g: 0.20290342, b: 0, a: 1}
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
@@ -30114,8 +30113,8 @@ ParticleSystem:
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
-        key0: {r: 1, g: 0.19689086, b: 0.16911763, a: 1}
-        key1: {r: 1, g: 0.66430444, b: 0.19117647, a: 1}
+        key0: {r: 1, g: 0.033018865, b: 0, a: 1}
+        key1: {r: 0.9811321, g: 0.26907307, b: 0.1527234, a: 1}
         key2: {r: 0, g: 0, b: 0, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
@@ -34925,8 +34924,8 @@ ParticleSystem:
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
-        key0: {r: 1, g: 0.19689086, b: 0.16911763, a: 1}
-        key1: {r: 1, g: 0.66430444, b: 0.19117647, a: 1}
+        key0: {r: 0.990566, g: 0.05529837, b: 0.023362402, a: 1}
+        key1: {r: 0.98039216, g: 0.033831276, b: 0.003921577, a: 1}
         key2: {r: 0, g: 0, b: 0, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
@@ -39702,7 +39701,7 @@ ParticleSystem:
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 0.19689086, b: 0.16911763, a: 0}
-        key1: {r: 1, g: 0.66430444, b: 0.19117647, a: 1}
+        key1: {r: 1, g: 0.26691127, b: 0.0141509175, a: 1}
         key2: {r: 1, g: 0.19689086, b: 0.16911763, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
@@ -39730,7 +39729,7 @@ ParticleSystem:
         m_NumAlphaKeys: 3
       minGradient:
         serializedVersion: 2
-        key0: {r: 1, g: 0.66430444, b: 0.19117647, a: 0}
+        key0: {r: 0.990566, g: 0.16166273, b: 0, a: 0}
         key1: {r: 1, g: 0.19689086, b: 0.16911763, a: 1}
         key2: {r: 1, g: 0.66430444, b: 0.19117647, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}

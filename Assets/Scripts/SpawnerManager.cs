@@ -14,6 +14,8 @@ public class SpawnerManager : MonoBehaviour
     [SerializeField] private GameObject[] enemies;
 
     [Header("Properties")]
+    [Tooltip("Each pattern will choose a random values from this array and will spawn that many enemies. The best way is to keep all values divisible by 3. E.g. 3 6 9 12")]
+    [SerializeField] private int[] enemiesToSpawnValues;
     [Tooltip("How much later after starting the level should the enemy spawn (after that the enemies will use the min/max cooldowns)?")]
     [SerializeField] private float initialSpawnCooldown = 1f;
     [SerializeField] private float minSpawnCooldown = 1f;
@@ -121,14 +123,17 @@ public class SpawnerManager : MonoBehaviour
                 int patternIndex = Random.Range(0, 3);
 
                 //avoid the same pattern running twice consequently
-                if(patternIndex == lastPatternChosen)
+                if (patternIndex == lastPatternChosen)
                 {
                     patternIndex++;
                     if (patternIndex >= 3)
-                        patternIndex = 0;                 
+                        patternIndex = 0;
                 }
 
-                SpawnPattern(patternIndex);
+                
+                int enemiesToSpawnIndex = Random.Range(0, enemiesToSpawnValues.Length);
+                SpawnPattern(patternIndex, enemiesToSpawnValues[enemiesToSpawnIndex]);
+                Debug.Log("SPAWN " + enemiesToSpawnValues[enemiesToSpawnIndex]);
                 isPatternChosen = true;
                 lastPatternChosen = patternIndex;
                 //   int patternIndex = 2;           
@@ -177,35 +182,34 @@ public class SpawnerManager : MonoBehaviour
         return enemySpeedBooster;
     }
 
-    private void SpawnPattern(int patternIndex)
+    private void SpawnPattern(int patternIndex, int enemiesToSpawn)
     {
         switch (patternIndex)
         {
             case 0:
-                StartCoroutine(StartPattern0());
+                StartCoroutine(StartPattern0(enemiesToSpawn));
                 break;
             case 1:
-                StartCoroutine(StartPattern1());
+                StartCoroutine(StartPattern1(enemiesToSpawn));
                 break;
             case 2:
-                StartCoroutine(StartPattern2());
+                StartCoroutine(StartPattern2(enemiesToSpawn));
                 break;
         }
-
     }
 
     /// <summary>
     /// Uses all spawners from the top side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator StartPattern0()
+    private IEnumerator StartPattern0(int enemiesToSpawn)
     {
      //   Debug.Log("TOP PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 0;
-        currentPoolItem = 0;
+   //     currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -230,7 +234,7 @@ public class SpawnerManager : MonoBehaviour
                 DetermineSpeedBoost();
             }
 
-            if (enemiesSpawned >= 18)
+            if (enemiesSpawned >= enemiesToSpawn)
             {
                 isPatternExecuting = false;
             }
@@ -244,14 +248,14 @@ public class SpawnerManager : MonoBehaviour
     /// Uses all spawners from the bot side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator StartPattern1()
+    private IEnumerator StartPattern1(int enemiesToSpawn)
     {
     //    Debug.Log("BOT PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 0;
-        currentPoolItem = 0;
+   //     currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -276,7 +280,7 @@ public class SpawnerManager : MonoBehaviour
                 DetermineSpeedBoost();
             }
 
-            if (enemiesSpawned >= 9)
+            if (enemiesSpawned >= enemiesToSpawn)
             {
                 isPatternExecuting = false;
             }
@@ -290,7 +294,7 @@ public class SpawnerManager : MonoBehaviour
     /// Uses all spawners from both sides consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator StartPattern2()
+    private IEnumerator StartPattern2(int enemiesToSpawn)
     {
      //   Debug.Log("MIXED PATTERN");
         float timeBetweenEnemies = 1f;
@@ -298,7 +302,7 @@ public class SpawnerManager : MonoBehaviour
         int enemiesSpawned = 0;
         int isTopOrBot = 0; //0 for top; 1 for bot
         currentSpawner = 0;
-        currentPoolItem = 0;
+    //    currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 1f;
@@ -337,7 +341,7 @@ public class SpawnerManager : MonoBehaviour
             }
                 
 
-            if (enemiesSpawned >= 9)
+            if (enemiesSpawned >= enemiesToSpawn)
             {
                 isPatternExecuting = false;
             }
