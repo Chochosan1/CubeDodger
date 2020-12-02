@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class TileDestroyerManager : MonoBehaviour
 {
+    public static TileDestroyerManager Instance;
+
     [SerializeField] private GameObject leftTile;
     [SerializeField] private GameObject rightTile;
     [SerializeField] private Material warningMaterial, normalMaterial;
@@ -16,7 +18,15 @@ public class TileDestroyerManager : MonoBehaviour
     private Animator leftTileAnim, rightTileAnim;
     private MeshRenderer leftTileRend, rightTileRend;
     private bool isAnyTileDestroyed = false;
+    private bool isTileDestroyPaused = false;
 
+    private void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
+        }
+    }
 
     private void Start()
     {
@@ -39,13 +49,23 @@ public class TileDestroyerManager : MonoBehaviour
 
     private void Update()
     {
-        if (Time.time >= tileDestroyTimestamp && !isAnyTileDestroyed)
+        if (Time.time >= tileDestroyTimestamp && !isAnyTileDestroyed && !isTileDestroyPaused)
         {
             tileToDestroy = Random.Range(0, 2);
             tileDestroyTimestamp = Time.time + Random.Range(minTileDestroyCooldown, maxTileDestroyCooldown);
 
             StartCoroutine(ShowIndicatorAndDestroyTile());
         }
+    }
+
+    public void SetPauseTileDestruction(bool value)
+    {
+        isTileDestroyPaused = value;
+    }
+
+    public bool IsAnyTileDestroyed()
+    {
+        return isAnyTileDestroyed;
     }
 
     private IEnumerator ShowIndicatorAndDestroyTile()
@@ -66,9 +86,9 @@ public class TileDestroyerManager : MonoBehaviour
         float shakeMultiplier = 0;
         while (timeLeftToToggleTile > 0)
         {
-            shakeMultiplier += 0.5f;
+            shakeMultiplier += 0.8f;
             warningMaterial.SetFloat("_ShakeUvSpeed", shakeMultiplier);
-            Debug.Log(timeLeftToToggleTile);
+        //    Debug.Log(timeLeftToToggleTile);
             yield return new WaitForSeconds(1f);
             timeLeftToToggleTile--;
         }

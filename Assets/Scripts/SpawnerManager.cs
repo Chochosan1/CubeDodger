@@ -14,6 +14,8 @@ public class SpawnerManager : MonoBehaviour
     [SerializeField] private GameObject[] enemies;
 
     [Header("Properties")]
+    [Tooltip("Set to true if the same pattern should never appear twice consequently.")]
+    [SerializeField] private bool isAvoidTheSamePatternTwice = true;
     [Tooltip("Each pattern will choose a random values from this array and will spawn that many enemies. The best way is to keep all values divisible by 3. E.g. 3 6 9 12")]
     [SerializeField] private int[] enemiesToSpawnValues;
     [Tooltip("How much later after starting the level should the enemy spawn (after that the enemies will use the min/max cooldowns)?")]
@@ -120,17 +122,26 @@ public class SpawnerManager : MonoBehaviour
         {
             if (!isPatternChosen)
             {
-                int patternIndex = Random.Range(0, 5);
+                int patternIndex = Random.Range(0, 7);
+             //   patternIndex = 6;
 
                 //avoid the same pattern running twice consequently
-                if (patternIndex == lastPatternChosen)
+                if (isAvoidTheSamePatternTwice && patternIndex == lastPatternChosen)
                 {
                     patternIndex++;
-                    if (patternIndex >= 3)
+                    if (patternIndex >= 6)
                         patternIndex = 0;
                 }
 
-           //     patternIndex = 3;
+                //forbid these patterns if there is currently a missing tile or about to lose a tile
+                if((patternIndex == 2 || patternIndex == 5 || patternIndex == 6) && TileDestroyerManager.Instance.IsAnyTileDestroyed())
+                {
+                    patternIndex++;
+                    if (patternIndex >= 7)
+                        patternIndex = 0;
+                }
+
+           
                 int enemiesToSpawnIndex = Random.Range(0, enemiesToSpawnValues.Length);
                 SpawnPattern(patternIndex, enemiesToSpawnValues[enemiesToSpawnIndex]);
                 isPatternChosen = true;
@@ -171,8 +182,6 @@ public class SpawnerManager : MonoBehaviour
         enemySpeedBooster = PlayerController.Instance.ScoreMultiplier / 10f + PlayerController.Instance.CurrentScore * 0.01f;
         if (enemySpeedBooster >= absoluteMaximumSpeedBoost)
             enemySpeedBooster = absoluteMaximumSpeedBoost;
-
-
     }
 
     public float GetCurrentSpeedBoost()
@@ -199,21 +208,25 @@ public class SpawnerManager : MonoBehaviour
             case 4:
                 StartCoroutine(StartPattern4(enemiesToSpawn));
                 break;
+            case 5:
+                StartCoroutine(StartPattern5(enemiesToSpawn));
+                break;
+            case 6:
+                StartCoroutine(StartPattern6(enemiesToSpawn));
+                break;
         }
     }
 
     /// <summary>
-    /// Uses all spawners from the top side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// Uses all spawners from the top side consequently (spawner array traverse: ASCENDING). Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
     private IEnumerator StartPattern0(int enemiesToSpawn)
     {
-     //   Debug.Log("TOP PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 0;
-   //     currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -249,17 +262,15 @@ public class SpawnerManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Uses all spawners from the bot side consequently. Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// Uses all spawners from the bot side consequently (spawner array traverse: ASCENDING). Enemies spawned are recycled from the pool and are also chosen consequently.
     /// </summary>
     /// <returns></returns>
     private IEnumerator StartPattern1(int enemiesToSpawn)
     {
-    //    Debug.Log("BOT PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 0;
-   //     currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -300,13 +311,12 @@ public class SpawnerManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator StartPattern2(int enemiesToSpawn)
     {
-     //   Debug.Log("MIXED PATTERN");
+        TileDestroyerManager.Instance.SetPauseTileDestruction(true);
         float timeBetweenEnemies = 1f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         int isTopOrBot = 0; //0 for top; 1 for bot
         currentSpawner = 0;
-    //    currentPoolItem = 0;
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 1f;
@@ -324,12 +334,10 @@ public class SpawnerManager : MonoBehaviour
             if (isTopOrBot == 0)
             {
                 enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
-              //  Debug.Log("SPAWN AT: " + enemySpawnsUp[currentSpawner].name);
             }
             else if (isTopOrBot == 1)
             {
                 enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
-             //   Debug.Log("SPAWN AT: " + enemySpawnsDown[currentSpawner].name);
             }
 
             currentSpawner++;
@@ -352,17 +360,22 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        yield return new WaitForSeconds(0.1f);
+        TileDestroyerManager.Instance.SetPauseTileDestruction(true);
         isPatternChosen = false;
     }
 
+    /// <summary>
+    /// Uses all spawners from the bot side consequently (spawner array traverse: DESCENDING). Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator StartPattern3(int enemiesToSpawn)
     {
-        //    Debug.Log("BOT PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 2;
-        //     currentPoolItem = 0;
+
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -397,14 +410,18 @@ public class SpawnerManager : MonoBehaviour
         isPatternChosen = false;
     }
 
+
+    /// <summary>
+    /// Uses all spawners from the top side consequently (spawner array traverse: DESCENDING). Enemies spawned are recycled from the pool and are also chosen consequently.
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator StartPattern4(int enemiesToSpawn)
     {
-        //    Debug.Log("BOT PATTERN");
         float timeBetweenEnemies = 0.8f;
         bool isPatternExecuting = true;
         int enemiesSpawned = 0;
         currentSpawner = 2;
-        //     currentPoolItem = 0;
+
         while (isPatternExecuting)
         {
             timeBetweenEnemies = 0.8f;
@@ -436,6 +453,142 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        isPatternChosen = false;
+    }
+
+    /// <summary>
+    /// Uses 2 spawners simultaneously to spawn 2 balls at the same time from the top side. Pauses tile destruction so that the game remains fair.
+    /// </summary>
+    /// <param name="enemiesToSpawn"></param>
+    /// <returns></returns>
+    private IEnumerator StartPattern5(int enemiesToSpawn)
+    {
+        TileDestroyerManager.Instance.SetPauseTileDestruction(true);
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        int firstSpawner = 0;
+
+        //override the enemiesToSpawn because this pattern works with divisible by 2 nums
+        int[] enemiesSpawnValues = { 2, 4, 6, 8 };
+        enemiesToSpawn = enemiesSpawnValues[Random.Range(0, enemiesSpawnValues.Length)];
+
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            currentSpawner = Random.Range(0, enemySpawnsUp.Length);
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
+            firstSpawner = currentSpawner;
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            currentSpawner = Random.Range(0, enemySpawnsUp.Length);
+            if(currentSpawner == firstSpawner)
+            {
+                currentSpawner++;
+                if (currentSpawner >= enemySpawnsUp.Length)
+                    currentSpawner = 0;
+            }
+
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            //wait a bit more time between waves
+            if (enemiesSpawned % 2 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+          //      DetermineSpeedBoost();
+            }
+
+            if (enemiesSpawned >= enemiesToSpawn)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        yield return new WaitForSeconds(0.1f);
+        TileDestroyerManager.Instance.SetPauseTileDestruction(false);
+        isPatternChosen = false;
+    }
+
+    /// <summary>
+    /// Uses 2 spawners simultaneously to spawn 2 balls at the same time from the bot side. Pauses tile destruction so that the game remains fair.
+    /// </summary>
+    /// <param name="enemiesToSpawn"></param>
+    /// <returns></returns>
+    private IEnumerator StartPattern6(int enemiesToSpawn)
+    {
+        TileDestroyerManager.Instance.SetPauseTileDestruction(true);
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        int firstSpawner = 0;
+
+        //override the enemiesToSpawn because this pattern works with divisible by 2 nums
+        int[] enemiesSpawnValues = { 2, 4, 6, 8 };
+        enemiesToSpawn = enemiesSpawnValues[Random.Range(0, enemiesSpawnValues.Length)];
+
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            currentSpawner = Random.Range(0, enemySpawnsDown.Length);
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
+            firstSpawner = currentSpawner;
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            currentSpawner = Random.Range(0, enemySpawnsDown.Length);
+            if (currentSpawner == firstSpawner)
+            {
+                currentSpawner++;
+                if (currentSpawner >= enemySpawnsDown.Length)
+                    currentSpawner = 0;
+            }
+
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            //wait a bit more time between waves
+            if (enemiesSpawned % 2 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+                //      DetermineSpeedBoost();
+            }
+
+            if (enemiesSpawned >= enemiesToSpawn)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        yield return new WaitForSeconds(0.1f);
+        TileDestroyerManager.Instance.SetPauseTileDestruction(false);
         isPatternChosen = false;
     }
 

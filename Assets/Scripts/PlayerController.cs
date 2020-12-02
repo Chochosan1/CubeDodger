@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private const float MIN_DELAY_BETWEEN_JUMPS = 0.1f; //the min delay should allow the player to reach its destination before stopping
 
     [Header("Movement")]
+    [Space]
     [SerializeField] private int cubesPerMove = 1;
     [Range(MIN_SPEED, 100)]
     [SerializeField] private float moveSpeed = MIN_SPEED;
@@ -22,6 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float delayBetweenJumps = 0.2f;
 
     [Header("Colours")]
+    [Space]
     [ColorUsage(true, true)]
     [SerializeField] private Color redColor;
     [ColorUsage(true, true)]
@@ -35,11 +37,13 @@ public class PlayerController : MonoBehaviour
     private CubeColor currentColor;
 
     [Header("Camera")]
+    [Space]
     [SerializeField] private Transform cameraGame;
     [SerializeField] private float shakeDuration = 0.1f;
     [SerializeField] private float shakeMagnitude = 0.5f;
 
     [Header("References")]
+    [Space]
     [SerializeField] private Transform respawnTransform;
     [SerializeField] private GameObject moveParticle;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
@@ -50,12 +54,15 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The part of the player prefab that consists of the visual part of the player (not the entire player prefab).")]
     [SerializeField] private GameObject playerCube;
     [SerializeField] private GameObject playerExplodedPrefab;
+    [SerializeField] private GameObject transitionPanel;
     private Material playerMat;
 
     [Header("Collision")]
+    [Space]
     [SerializeField] private LayerMask layersToGetAffectedBy;
 
     [Header("Score counter")]
+    [Space]
     [Tooltip("The starting score multiplier. It will increase over time while playing until an enemy hits the player.")]
     [SerializeField] private float scoreMultiplier = 1f;
     [Tooltip("The maximum multiplier should not exceed this value.")]
@@ -118,6 +125,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(EnableTransitionAndDisablePanel());
         playerMat = GetComponentInChildren<Renderer>().material;
         //   defaultColor = playerMat.GetColor("_EmissionColor");
 
@@ -127,6 +135,7 @@ public class PlayerController : MonoBehaviour
 
 
         thisTransform = transform;
+
         anim = GetComponentInChildren<Animator>();
         multiplierTextAnim = multiplierText.gameObject.GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
@@ -147,6 +156,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            ScoreMultiplier = 10;
+            CurrentScore = 1000;
+        }
         Swipe();
 
         if (isGameLost)
@@ -159,6 +173,12 @@ public class PlayerController : MonoBehaviour
         if (Time.time >= secondsToIncreaseMultiplierTimestamp)
         {
             IncreaseMultiplier();
+        }
+        else if(Time.time >= secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.3f) // start shaking when 80% of the way to the next multiplier has been reached as a way to alert the player 
+        {
+            playerMat.SetFloat("_DistortAmount", 0.5f);
+        //    playerMat.SetFloat("_GlitchAmount", 4f);
+        //    Debug.Log(Time.time + "   " + (secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.2f));
         }
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -253,6 +273,8 @@ public class PlayerController : MonoBehaviour
         secondsToIncreaseMultiplierTimestamp = Time.time + secondsToIncreaseMultiplier;
         multiplierBar.maxValue = secondsToIncreaseMultiplier;
         multiplierBar.value = 0f;
+        playerMat.SetFloat("_DistortAmount", 0f);
+    //    playerMat.SetFloat("_GlitchAmount", 0f);
     }
 
     public void IncreaseMultiplier()
@@ -262,6 +284,8 @@ public class PlayerController : MonoBehaviour
         multiplierTextAnim.SetBool("increaseMultiplier", true);
         multiplierBar.maxValue = secondsToIncreaseMultiplier;
         multiplierBar.value = 0f;
+        playerMat.SetFloat("_DistortAmount", 0f);
+   //     playerMat.SetFloat("_GlitchAmount", 0f);
 
         SwitchPlayerColourRandomly();
     }
@@ -316,16 +340,20 @@ public class PlayerController : MonoBehaviour
         switch (currentColor)
         {
             case CubeColor.Blue:
-                playerMat.SetColor("_EmissionColor", blueColor);
+                playerMat.SetColor("_GlowColor", blueColor);
+            //    playerMat.SetColor("_EmissionColor", blueColor);
                 break;
             case CubeColor.Red:
-                playerMat.SetColor("_EmissionColor", redColor);
+                playerMat.SetColor("_GlowColor", redColor);
+              //  playerMat.SetColor("_EmissionColor", redColor);
                 break;
             case CubeColor.Yellow:
-                playerMat.SetColor("_EmissionColor", yellowColor);
+                playerMat.SetColor("_GlowColor", yellowColor);
+              //  playerMat.SetColor("_EmissionColor", yellowColor);
                 break;
             case CubeColor.Green:
-                playerMat.SetColor("_EmissionColor", greenColor);
+                playerMat.SetColor("_GlowColor", greenColor);
+              //  playerMat.SetColor("_EmissionColor", greenColor);
                 break;
         }
         lastColor = currentColor;
@@ -336,16 +364,20 @@ public class PlayerController : MonoBehaviour
         switch (currentColor)
         {
             case CubeColor.Blue:
-                playerMat.SetColor("_EmissionColor", blueColor);
+                playerMat.SetColor("_GlowColor", blueColor);
+                //   playerMat.SetColor("_EmissionColor", blueColor);
                 break;
             case CubeColor.Red:
-                playerMat.SetColor("_EmissionColor", redColor);
+                playerMat.SetColor("_GlowColor", redColor);
+                //  playerMat.SetColor("_EmissionColor", redColor);
                 break;
             case CubeColor.Yellow:
-                playerMat.SetColor("_EmissionColor", yellowColor);
+                playerMat.SetColor("_GlowColor", yellowColor);
+             //   playerMat.SetColor("_EmissionColor", yellowColor);
                 break;
             case CubeColor.Green:
-                playerMat.SetColor("_EmissionColor", greenColor);
+                playerMat.SetColor("_GlowColor", greenColor);
+                //   playerMat.SetColor("_EmissionColor", greenColor);
                 break;
         }
         lastColor = currentColor;
@@ -390,6 +422,13 @@ public class PlayerController : MonoBehaviour
         canRollBackwards = false;
         anim.SetBool("moveBackwards", false);
         moveParticle.SetActive(false);
+    }
+
+    private IEnumerator EnableTransitionAndDisablePanel()
+    {
+        transitionPanel.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        transitionPanel.SetActive(false);
     }
 
     public GameData GetGameDataToSave()

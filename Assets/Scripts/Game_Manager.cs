@@ -10,33 +10,38 @@ public class Game_Manager : MonoBehaviour
     enum ButtonActionType { LoadNextLevel }
 
     [Header("Properties")]
-    [SerializeField] private float fadeButtonSpeed = 1f;
+    [SerializeField] private float fadeSpeed = 1f;
 
-    [Header("Buttons")]
-    [SerializeField] private Image playBtnImage;
+
+
+    [Header("References")]
+    [SerializeField] private GameObject player;
     [SerializeField] private GameObject playBtnText;
     [SerializeField] private TextMeshProUGUI coinsText;
+    [SerializeField] private GameObject transitionPanel;
 
     private float currFadeAmount;
     private bool isFadeStarted = false;
-    private Image currentButtonClickedImage;
     private int sceneToLoad;
     private ButtonActionType currentActionType;
+    private Material playerMat;
 
     private void Start()
     {
+        transitionPanel.SetActive(false);
         ResetShaderValues();
         coinsText.text = Chochosan.SaveLoadManager.savedGameData.gameData.coinsAmount.ToString();
+        playerMat = player.GetComponentInChildren<Renderer>().material;
     }
 
     private void Update()
     {
         if(isFadeStarted)
         {
-            currFadeAmount += Time.deltaTime * fadeButtonSpeed;
-            currentButtonClickedImage.material.SetFloat("_FadeAmount", currFadeAmount);
+            currFadeAmount += Time.deltaTime * fadeSpeed;
+            playerMat.SetFloat("_FadeAmount", currFadeAmount);
 
-            if(currFadeAmount >= 0.95f)
+            if(currFadeAmount >= 0.65f)
             {
                 DetermineAction(currentActionType);
             }
@@ -45,10 +50,8 @@ public class Game_Manager : MonoBehaviour
 
     public void GoToScene(int sceneIndex)
     {
-        playBtnText.SetActive(false);
         isFadeStarted = true;
         currentActionType = ButtonActionType.LoadNextLevel;
-        currentButtonClickedImage = playBtnImage;
         sceneToLoad = sceneIndex;
     }
 
@@ -57,14 +60,21 @@ public class Game_Manager : MonoBehaviour
         switch (buttonActionType)
         {
             case ButtonActionType.LoadNextLevel:
-                SceneManager.LoadScene(sceneToLoad);
+                StartCoroutine(OpenTransitionThenLoad());
                 break;
         }
+    }
+
+    private IEnumerator OpenTransitionThenLoad()
+    {
+        transitionPanel.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        SceneManager.LoadScene(sceneToLoad);
     }
 
     [ContextMenu("Chochosan/ResetShaderValues")]
     public void ResetShaderValues()
     {
-        playBtnImage.material.SetFloat("_FadeAmount", -0.1f);
+        player.GetComponentInChildren<Renderer>().material.SetFloat("_FadeAmount", -0.1f);
     }
 }
