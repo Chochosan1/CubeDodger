@@ -120,7 +120,7 @@ public class SpawnerManager : MonoBehaviour
         {
             if (!isPatternChosen)
             {
-                int patternIndex = Random.Range(0, 3);
+                int patternIndex = Random.Range(0, 5);
 
                 //avoid the same pattern running twice consequently
                 if (patternIndex == lastPatternChosen)
@@ -130,15 +130,13 @@ public class SpawnerManager : MonoBehaviour
                         patternIndex = 0;
                 }
 
-                
+           //     patternIndex = 3;
                 int enemiesToSpawnIndex = Random.Range(0, enemiesToSpawnValues.Length);
                 SpawnPattern(patternIndex, enemiesToSpawnValues[enemiesToSpawnIndex]);
-           //     Debug.Log("SPAWN " + enemiesToSpawnValues[enemiesToSpawnIndex]);
                 isPatternChosen = true;
                 lastPatternChosen = patternIndex;
-                //   int patternIndex = 2;           
+                         
             }
-
         }
     }
 
@@ -194,6 +192,12 @@ public class SpawnerManager : MonoBehaviour
                 break;
             case 2:
                 StartCoroutine(StartPattern2(enemiesToSpawn));
+                break;
+            case 3:
+                StartCoroutine(StartPattern3(enemiesToSpawn));
+                break;
+            case 4:
+                StartCoroutine(StartPattern4(enemiesToSpawn));
                 break;
         }
     }
@@ -340,6 +344,90 @@ public class SpawnerManager : MonoBehaviour
                 DetermineSpeedBoost();
             }
                 
+
+            if (enemiesSpawned >= enemiesToSpawn)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        isPatternChosen = false;
+    }
+
+    private IEnumerator StartPattern3(int enemiesToSpawn)
+    {
+        //    Debug.Log("BOT PATTERN");
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        currentSpawner = 2;
+        //     currentPoolItem = 0;
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
+            if (currentSpawner < 0)
+                currentSpawner = enemySpawnsDown.Length - 1;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsDown[currentSpawner].position, enemySpawnsDown[currentSpawner].rotation);
+            currentSpawner--;
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            //wait a bit more time between waves
+            if (enemiesSpawned % 3 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+                DetermineSpeedBoost();
+            }
+
+            if (enemiesSpawned >= enemiesToSpawn)
+            {
+                isPatternExecuting = false;
+            }
+            yield return new WaitForSeconds(timeBetweenEnemies);
+        }
+
+        isPatternChosen = false;
+    }
+
+    private IEnumerator StartPattern4(int enemiesToSpawn)
+    {
+        //    Debug.Log("BOT PATTERN");
+        float timeBetweenEnemies = 0.8f;
+        bool isPatternExecuting = true;
+        int enemiesSpawned = 0;
+        currentSpawner = 2;
+        //     currentPoolItem = 0;
+        while (isPatternExecuting)
+        {
+            timeBetweenEnemies = 0.8f;
+            timeBetweenEnemies -= enemySpeedBooster * 0.2f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
+            if (currentSpawner < 0)
+                currentSpawner = enemySpawnsUp.Length - 1;
+            if (currentPoolItem >= enemyPool.Count)
+                currentPoolItem = 0;
+
+            enemyPool[currentPoolItem].gameObject.SetActive(true);
+            enemyPool[currentPoolItem].Reset(enemySpawnsUp[currentSpawner].position, enemySpawnsUp[currentSpawner].rotation);
+            currentSpawner--;
+            currentPoolItem++;
+            enemiesSpawned++;
+
+            //wait a bit more time between waves
+            if (enemiesSpawned % 3 == 0)
+            {
+                timeBetweenEnemies *= 2f;
+                DetermineSpeedBoost();
+            }
 
             if (enemiesSpawned >= enemiesToSpawn)
             {
