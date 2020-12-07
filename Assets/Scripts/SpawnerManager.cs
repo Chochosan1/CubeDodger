@@ -145,8 +145,7 @@ public class SpawnerManager : MonoBehaviour
                 int enemiesToSpawnIndex = Random.Range(0, enemiesToSpawnValues.Length);
                 SpawnPattern(patternIndex, enemiesToSpawnValues[enemiesToSpawnIndex]);
                 isPatternChosen = true;
-                lastPatternChosen = patternIndex;
-                         
+                lastPatternChosen = patternIndex;                      
             }
         }
     }
@@ -177,6 +176,7 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
+    /// <summary>Determines a bonus to the movement speed of the enemies. Scales with the current score and the current score multiplier up to a certain maximum. </summary>
     private void DetermineSpeedBoost()
     {
         enemySpeedBooster = PlayerController.Instance.ScoreMultiplier / 10f + PlayerController.Instance.CurrentScore * 0.01f;
@@ -231,8 +231,8 @@ public class SpawnerManager : MonoBehaviour
         {
             timeBetweenEnemies = 0.8f;
             timeBetweenEnemies -= enemySpeedBooster * 0.2f;
-            if (timeBetweenEnemies <= 0.5f)
-                timeBetweenEnemies = 0.5f;
+            if (timeBetweenEnemies <= 0.65f)
+                timeBetweenEnemies = 0.65f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -275,8 +275,8 @@ public class SpawnerManager : MonoBehaviour
         {
             timeBetweenEnemies = 0.8f;
             timeBetweenEnemies -= enemySpeedBooster * 0.2f;
-            if (timeBetweenEnemies <= 0.5f)
-                timeBetweenEnemies = 0.5f;
+            if (timeBetweenEnemies <= 0.65f)
+                timeBetweenEnemies = 0.65f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -591,5 +591,4 @@ public class SpawnerManager : MonoBehaviour
         TileDestroyerManager.Instance.SetPauseTileDestruction(false);
         isPatternChosen = false;
     }
-
 }

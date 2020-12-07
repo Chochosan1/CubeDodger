@@ -71,8 +71,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float secondsToIncreaseMultiplier = 5f;
     [Tooltip("How much should the multiplier increase with?")]
     [SerializeField] private float multiplierIncreasePerTick = 1f;
+
+    [Header("Bonuses")]
+    [Space]
+    [SerializeField] private int reviveCoinsCost = 100;
     private float secondsToIncreaseMultiplierTimestamp;
     private bool isGameLost = false;
+    private bool hasPlayerAlreadyRevived = false;
+    private float firstTimeCoinsGivenAtThisScore; //cache the score at which the player received his first coins (if he hits continue he should get coins one more time but for a smaller score)
     private float currentScore = 0f;
     public float CurrentScore
     {
@@ -127,7 +133,6 @@ public class PlayerController : MonoBehaviour
     {
         StartCoroutine(EnableTransitionAndDisablePanel());
         playerMat = GetComponentInChildren<Renderer>().material;
-        //   defaultColor = playerMat.GetColor("_EmissionColor");
 
         currentColor = startColor;
         SwitchPlayerColour(currentColor);
@@ -156,7 +161,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             ScoreMultiplier = 10;
             CurrentScore = 1000;
@@ -174,16 +179,16 @@ public class PlayerController : MonoBehaviour
         {
             IncreaseMultiplier();
         }
-        else if(Time.time >= secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.3f) // start shaking when 80% of the way to the next multiplier has been reached as a way to alert the player 
+        else if (Time.time >= secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.3f) // start shaking when 80% of the way to the next multiplier has been reached as a way to alert the player 
         {
             playerMat.SetFloat("_DistortAmount", 0.5f);
-        //    playerMat.SetFloat("_GlitchAmount", 4f);
-        //    Debug.Log(Time.time + "   " + (secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.2f));
+            //    playerMat.SetFloat("_GlitchAmount", 4f);
+            //    Debug.Log(Time.time + "   " + (secondsToIncreaseMultiplierTimestamp - secondsToIncreaseMultiplier * 0.2f));
         }
 
         if (Input.GetKeyDown(KeyCode.F))
         {
-            Respawn();
+            RespawnPlayer();
         }
 
         if (Input.GetKeyDown(KeyCode.W))
@@ -256,7 +261,7 @@ public class PlayerController : MonoBehaviour
     public void PushPlayer(Vector3 pushDir, float force)
     {
         rb.AddForce(pushDir * force, ForceMode.Impulse);
-        CurrentScore -= force;
+        //   CurrentScore -= force;
         ResetMultiplier();
     }
 
@@ -274,7 +279,6 @@ public class PlayerController : MonoBehaviour
         multiplierBar.maxValue = secondsToIncreaseMultiplier;
         multiplierBar.value = 0f;
         playerMat.SetFloat("_DistortAmount", 0f);
-    //    playerMat.SetFloat("_GlitchAmount", 0f);
     }
 
     public void IncreaseMultiplier()
@@ -285,7 +289,6 @@ public class PlayerController : MonoBehaviour
         multiplierBar.maxValue = secondsToIncreaseMultiplier;
         multiplierBar.value = 0f;
         playerMat.SetFloat("_DistortAmount", 0f);
-   //     playerMat.SetFloat("_GlitchAmount", 0f);
 
         SwitchPlayerColourRandomly();
     }
@@ -310,8 +313,16 @@ public class PlayerController : MonoBehaviour
         isGameLost = true;
         playerCube.SetActive(false);
         playerExplodedObject = Instantiate(playerExplodedPrefab, thisTransform.position, thisTransform.rotation);
-        int coinsToWin = (int)Mathf.Ceil(CurrentScore * 0.05f);
+        int coinsToWin = (int)Mathf.Round((CurrentScore - firstTimeCoinsGivenAtThisScore) * 0.05f);
         currentCoinsAmount += coinsToWin;
+
+        //subtract this next time the player should receive coins after respawning
+        //(e.g 500 score the first time -> he gets coins based on 500; 1100 score reached after respawn -> he gets coins based on 600 score instead of 1100 so that the total coins he's received is based on 1100);
+        firstTimeCoinsGivenAtThisScore = CurrentScore;
+
+        Debug.Log("coins added: " + coinsToWin);
+
+        int coinsWonToDisplay = (int)Mathf.Round((CurrentScore) * 0.05f);
 
         yield return new WaitForSeconds(2f);
         if (CurrentScore > highscore)
@@ -319,11 +330,11 @@ public class PlayerController : MonoBehaviour
             highscore = CurrentScore;
             highscoreText.text = highscore.ToString("F0");
 
-            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.NewHighscore, highscore.ToString());
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.NewHighscore, highscore.ToString("F0") + "\n" + "Coins: " + coinsWonToDisplay.ToString("F0"));
         }
         else
         {
-            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.GameLost, "Score: " + CurrentScore.ToString("F0") + "\n" + "Coins: " + coinsToWin.ToString("F0"));
+            Chochosan.EventManager.OnRequiresNotification?.Invoke(Chochosan.UI_Manager.NotificationType.GameLost, "Score: " + CurrentScore.ToString("F0") + "\n" + "Coins: " + coinsWonToDisplay.ToString("F0"));
         }
 
         Chochosan.SaveLoadManager.SaveGameState();
@@ -332,28 +343,24 @@ public class PlayerController : MonoBehaviour
     private void SwitchPlayerColourRandomly()
     {
         currentColor = (CubeColor)Random.Range(0, 3);
+
         if (currentColor == lastColor)
-        {
             currentColor++;
-        //    Debug.Log("CAUGHT SAME COLOR");
-        }
+
+
         switch (currentColor)
         {
             case CubeColor.Blue:
                 playerMat.SetColor("_GlowColor", blueColor);
-            //    playerMat.SetColor("_EmissionColor", blueColor);
                 break;
             case CubeColor.Red:
                 playerMat.SetColor("_GlowColor", redColor);
-              //  playerMat.SetColor("_EmissionColor", redColor);
                 break;
             case CubeColor.Yellow:
                 playerMat.SetColor("_GlowColor", yellowColor);
-              //  playerMat.SetColor("_EmissionColor", yellowColor);
                 break;
             case CubeColor.Green:
                 playerMat.SetColor("_GlowColor", greenColor);
-              //  playerMat.SetColor("_EmissionColor", greenColor);
                 break;
         }
         lastColor = currentColor;
@@ -365,19 +372,15 @@ public class PlayerController : MonoBehaviour
         {
             case CubeColor.Blue:
                 playerMat.SetColor("_GlowColor", blueColor);
-                //   playerMat.SetColor("_EmissionColor", blueColor);
                 break;
             case CubeColor.Red:
                 playerMat.SetColor("_GlowColor", redColor);
-                //  playerMat.SetColor("_EmissionColor", redColor);
                 break;
             case CubeColor.Yellow:
                 playerMat.SetColor("_GlowColor", yellowColor);
-             //   playerMat.SetColor("_EmissionColor", yellowColor);
                 break;
             case CubeColor.Green:
                 playerMat.SetColor("_GlowColor", greenColor);
-                //   playerMat.SetColor("_EmissionColor", greenColor);
                 break;
         }
         lastColor = currentColor;
@@ -388,8 +391,21 @@ public class PlayerController : MonoBehaviour
         return currentColor;
     }
 
-    public void Respawn()
+    /// <summary>
+    /// Returns true if the player has enough coins and has not already revived once.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsPlayerAbleToRevive()
     {
+        return currentCoinsAmount >= reviveCoinsCost && !hasPlayerAlreadyRevived;
+    }
+
+    public void RespawnPlayer()
+    {
+        Chochosan.EventManager.OnPlayerUsedContinueOption?.Invoke();
+        currentCoinsAmount -= reviveCoinsCost;
+        hasPlayerAlreadyRevived = true;
+        Time.timeScale = 1f;
         thisTransform.position = respawnTransform.position;
         thisTransform.rotation = Quaternion.identity;
         rb.velocity = Vector3.zero;
@@ -397,6 +413,7 @@ public class PlayerController : MonoBehaviour
         isGameLost = false;
         playerCube.SetActive(true);
         ScoreMultiplier = 1f;
+        Chochosan.SaveLoadManager.SaveGameState();
         Destroy(playerExplodedObject);
     }
 
@@ -468,7 +485,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            //save began touch 2d point
+            //save first touch point
             firstPressPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         }
         if (Input.GetMouseButtonUp(0))
@@ -494,7 +511,6 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, -cubesPerMove);
                 StartCoroutine(RollForward());
-                //      Debug.Log("up swipe");
             }
             //swipe down
             if (currentSwipe.y < 0 && currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
@@ -510,12 +526,10 @@ public class PlayerController : MonoBehaviour
 
                 targetPosition = thisTransform.position + new Vector3(0, 0, cubesPerMove);
                 StartCoroutine(RollBackwards());
-                //     Debug.Log("down swipe");
             }
             //swipe left
             if (currentSwipe.x < 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-                //    Debug.Log("left swipe");
                 if (canRollForward || canRollBackwards)
                     return;
 
@@ -530,7 +544,6 @@ public class PlayerController : MonoBehaviour
             //swipe right
             if (currentSwipe.x > 0 && currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
             {
-                //    Debug.Log("right swipe");
                 if (canRollForward || canRollBackwards)
                     return;
 

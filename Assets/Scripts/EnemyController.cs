@@ -17,6 +17,10 @@ public class EnemyController : MonoBehaviour, IInteractable
     [SerializeField] private float pushForceMultiplier = 0.2f;
     [SerializeField] private float minSpeed = 3f;
     [SerializeField] private float maxSpeed = 6f;
+    [SerializeField] private float minPointsWhenAbsorbed = 10f;
+    [SerializeField] private float maxPointsWhenAbsorbed = 17f;
+    [Tooltip("When the player has reached the maximum multiplier, the points he gains from absorbing enemies will get multiplied by this value.")]
+    [SerializeField] private float pointsMultiplierWhenMaxScoreMultiplierReached = 2.5f;
     [Tooltip("How long after hitting the player should the gameobject get disabled?")]
     [SerializeField] private float disableObjectAfter = 0.25f;
 
@@ -35,6 +39,16 @@ public class EnemyController : MonoBehaviour, IInteractable
         CalculateSpeedAndPushForce();
         hitParticle.SetActive(false);
         mainParticle.SetActive(true);
+    }
+
+    private void OnEnable()
+    {
+        Chochosan.EventManager.OnPlayerUsedContinueOption += DeactivateIfVisible;
+    }
+
+    private void OnDisable()
+    {
+        Chochosan.EventManager.OnPlayerUsedContinueOption -= DeactivateIfVisible;
     }
 
     public void AffectPlayer(PlayerController pc, bool isCurrentlyMoving)
@@ -60,9 +74,9 @@ public class EnemyController : MonoBehaviour, IInteractable
         else
         {
             if (pc.IsMaxMultiplierReached())
-                pc.CurrentScore += pushForce * 2.5f;
+                pc.CurrentScore += Random.Range(minPointsWhenAbsorbed, maxPointsWhenAbsorbed) * pointsMultiplierWhenMaxScoreMultiplierReached;
             else
-                pc.CurrentScore += pushForce;
+                pc.CurrentScore += Random.Range(minPointsWhenAbsorbed, maxPointsWhenAbsorbed);
 
             pc.IncreaseMultiplier();
         }
@@ -79,6 +93,12 @@ public class EnemyController : MonoBehaviour, IInteractable
     }
 
     private void OnBecameInvisible()
+    {
+        DeactivateIfVisible();
+    }
+
+    //first check if the object is visible in order to avoid instant deactivation when it spawns off-screen
+    private void DeactivateIfVisible()
     {
         if (isVisible)
         {

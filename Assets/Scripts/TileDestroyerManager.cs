@@ -58,11 +58,20 @@ public class TileDestroyerManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Set to true to stop tile destruction and false to allow tile destruction again.
+    /// </summary>
+    /// <param name="value"></param>
     public void SetPauseTileDestruction(bool value)
     {
         isTileDestroyPaused = value;
+        timeLeftToToggleTile = toggleTileAfterSeconds; //resets the countdown timer for tile destruction
     }
 
+    /// <summary>
+    /// Returns true if there is currently a destroyed tile or a tile which has already been marked for destruction.
+    /// </summary>
+    /// <returns></returns>
     public bool IsAnyTileDestroyed()
     {
         return isAnyTileDestroyed;

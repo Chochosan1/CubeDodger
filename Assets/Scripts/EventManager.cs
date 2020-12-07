@@ -10,9 +10,11 @@ namespace Chochosan
     public class EventManager : MonoBehaviour
     {    
         public delegate void OnRequiresNotificationDelegate(UI_Manager.NotificationType notificationType, string messageToDisplay);
-        /// <summary>
-        /// Fired when an action requires a notification to notify the player - e.g., a new highscore or simply losing the game
-        /// </summary>
+        /// <summary>Fired when an action requires a notification to notify the player - e.g., a new highscore or simply losing the game</summary>
         public static OnRequiresNotificationDelegate OnRequiresNotification;
+
+        public delegate void OnPlayerUsedContinueOptionDelegate();
+        /// <summary>Fired when the player chooses to continue with ad/coins after losing the game.</summary>
+        public static OnPlayerUsedContinueOptionDelegate OnPlayerUsedContinueOption;
     }
 }

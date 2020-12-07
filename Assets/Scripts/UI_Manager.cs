@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 namespace Chochosan
 {
@@ -16,17 +17,21 @@ namespace Chochosan
         [Header("References")]
         [SerializeField] private GameObject mainMenu;
         [SerializeField] private GameObject notificationPanel;
+        [SerializeField] private GameObject continuePanelInfo;
         [SerializeField] private TextMeshProUGUI notificationDescriptionText;
-        [SerializeField] private TextMeshProUGUI notifcationValueText;
+        [SerializeField] private TextMeshProUGUI notifcationValueRewardsText;
+        [SerializeField] private Button continueButton;
 
         private void Awake()
         {
             Chochosan.EventManager.OnRequiresNotification += ShowNotification;
+            Chochosan.EventManager.OnPlayerUsedContinueOption += ContinueOptionChosenUI;
         }
 
         private void OnDisable()
         {
             Chochosan.EventManager.OnRequiresNotification -= ShowNotification;
+            Chochosan.EventManager.OnPlayerUsedContinueOption -= ContinueOptionChosenUI;
         }
 
         private void OpenMainMenu()
@@ -34,13 +39,11 @@ namespace Chochosan
             mainMenu.SetActive(true);
         }
 
-        //called by a button
-        public void RespawnPlayer()
+        private void ContinueOptionChosenUI()
         {
-            PlayerController.Instance.Respawn();
-            Time.timeScale = 1f;
             mainMenu.SetActive(false);
             notificationPanel.SetActive(false);
+       //     continuePanelInfo.SetActive(true);
         }
 
         //called by a button
@@ -56,14 +59,19 @@ namespace Chochosan
             {
                 case NotificationType.NewHighscore:
                     notificationDescriptionText.text = "New Highscore!";
-                    notifcationValueText.text = message;
+                    notifcationValueRewardsText.text = message;
                     break;
                 case NotificationType.GameLost:
                     notificationDescriptionText.text = "You were shattered!";
-                    notifcationValueText.text = message;
+                    notifcationValueRewardsText.text = message;
                     break;
             }
             notificationPanel.SetActive(true);
+
+            if (PlayerController.Instance.IsPlayerAbleToRevive())
+                continueButton.interactable = true;
+            else
+                continueButton.interactable = false;
         //    StartCoroutine(DisableGameObjectAfter(notificationPanel, 2f));
         }
 
