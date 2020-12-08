@@ -231,8 +231,8 @@ public class SpawnerManager : MonoBehaviour
         {
             timeBetweenEnemies = 0.8f;
             timeBetweenEnemies -= enemySpeedBooster * 0.2f;
-            if (timeBetweenEnemies <= 0.65f)
-                timeBetweenEnemies = 0.65f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -248,6 +248,12 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+            }
+
+            //determine speed every 4th, 7th, 10th etc. enemy so that it is calculated at the start of the wave 
+            //(this way waves and enemies sync very well and the game remains fair)
+            if (enemiesSpawned % 3 == 1)
+            {
                 DetermineSpeedBoost();
             }
 
@@ -258,6 +264,7 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        DetermineSpeedBoost();
         isPatternChosen = false;
     }
 
@@ -275,8 +282,8 @@ public class SpawnerManager : MonoBehaviour
         {
             timeBetweenEnemies = 0.8f;
             timeBetweenEnemies -= enemySpeedBooster * 0.2f;
-            if (timeBetweenEnemies <= 0.65f)
-                timeBetweenEnemies = 0.65f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -292,6 +299,13 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+            }
+
+
+            //determine speed every 4th, 7th, 10th etc. enemy so that it is calculated at the start of the wave 
+            //(this way waves and enemies sync very well and the game remains fair)
+            if (enemiesSpawned % 3 == 1)
+            {
                 DetermineSpeedBoost();
             }
 
@@ -302,6 +316,7 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        DetermineSpeedBoost();
         isPatternChosen = false;
     }
 
@@ -321,8 +336,8 @@ public class SpawnerManager : MonoBehaviour
         {
             timeBetweenEnemies = 1f;
             timeBetweenEnemies -= enemySpeedBooster * 0.2f;
-            if (timeBetweenEnemies <= 0.65f)
-                timeBetweenEnemies = 0.65f;
+            if (timeBetweenEnemies <= 0.5f)
+                timeBetweenEnemies = 0.5f;
             if (currentSpawner >= enemySpawnsUp.Length)
                 currentSpawner = 0;
             if (currentPoolItem >= enemyPool.Count)
@@ -349,9 +364,16 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 1.5f;
+            }
+
+
+            //determine speed every 4th, 7th, 10th etc. enemy so that it is calculated at the start of the wave 
+            //(this way waves and enemies sync very well and the game remains fair)
+            if (enemiesSpawned % 3 == 1)
+            {
                 DetermineSpeedBoost();
             }
-                
+
 
             if (enemiesSpawned >= enemiesToSpawn)
             {
@@ -362,6 +384,7 @@ public class SpawnerManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
         TileDestroyerManager.Instance.SetPauseTileDestruction(true);
+        DetermineSpeedBoost();
         isPatternChosen = false;
     }
 
@@ -397,6 +420,13 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+            }
+
+
+            //determine speed every 4th, 7th, 10th etc. enemy so that it is calculated at the start of the wave 
+            //(this way waves and enemies sync very well and the game remains fair)
+            if (enemiesSpawned % 3 == 1)
+            {
                 DetermineSpeedBoost();
             }
 
@@ -407,6 +437,7 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        DetermineSpeedBoost();
         isPatternChosen = false;
     }
 
@@ -443,6 +474,13 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 3 == 0)
             {
                 timeBetweenEnemies *= 2f;
+            }
+
+
+            //determine speed every 4th, 7th, 10th etc. enemy so that it is calculated at the start of the wave 
+            //(this way waves and enemies sync very well and the game remains fair)
+            if (enemiesSpawned % 3 == 1)
+            {
                 DetermineSpeedBoost();
             }
 
@@ -453,6 +491,7 @@ public class SpawnerManager : MonoBehaviour
             yield return new WaitForSeconds(timeBetweenEnemies);
         }
 
+        DetermineSpeedBoost();
         isPatternChosen = false;
     }
 
@@ -509,7 +548,6 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 2 == 0)
             {
                 timeBetweenEnemies *= 2f;
-          //      DetermineSpeedBoost();
             }
 
             if (enemiesSpawned >= enemiesToSpawn)
@@ -577,7 +615,6 @@ public class SpawnerManager : MonoBehaviour
             if (enemiesSpawned % 2 == 0)
             {
                 timeBetweenEnemies *= 2f;
-                //      DetermineSpeedBoost();
             }
 
             if (enemiesSpawned >= enemiesToSpawn)
